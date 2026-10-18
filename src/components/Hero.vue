@@ -3,8 +3,8 @@ import { onMounted, ref } from "vue";
 import gsap from "gsap";
 import Banner from "./Banner.vue";
 
-const name = ["Guillermo"];
-const jobTitle = "Web Developer";
+const name = ["Guillermo", "González", "Piqueras"];
+const jobTitle = "Full Stack Developer";
 
 const titleRef = ref<HTMLHeadingElement | null>(null);
 
