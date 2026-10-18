@@ -67,12 +67,18 @@ src/
 - Animación de entrada: las líneas del nombre suben desde una máscara; la etiqueta se despliega de izquierda a derecha.
 - Se probó un efecto "crucigrama" en la G y **se descartó** por lioso.
 - Debe funcionar en móvil y respetar `prefers-reduced-motion`.
+- **Sin scroll:** toda la web es una pantalla. La habitación 3D es el menú: cada objeto abre su sección (pantalla del ordenador → Proyectos con un "navegador" falso; tablón de corcho → Skills; estantería con títulos → Certificaciones; avatar → Sobre mí; teléfono o sobre → Contacto).
+- **Menú superior** con las mismas secciones (Sobre mí, Skills, Proyectos, Certificaciones, Contacto). Es obligatorio, no un extra: es la navegación en móvil y para teclado o lector de pantalla. En móvil se pliega en un botón de menú.
+- El menú y los objetos 3D comparten el estado `activeSection` de `src/composables/useSection.ts`; la sección abierta se muestra en `SectionPanel.vue`.
+- **Dos idiomas** (español por defecto, botón ES/EN). Todos los textos van en `src/i18n/messages.ts`; nada de textos sueltos en los componentes.
+- La habitación se empieza con formas básicas hechas en código; los modelos de Blender sustituirán los objetos uno a uno más adelante.
+- Los comentarios del código van en español.
 
 ## Próximos pasos
 
-1. Subir el proyecto a GitHub (repositorio propio de Guillermo).
-2. Barra de menú superior (Sobre mí, Proyectos, Contacto).
-3. Escena 3D: su habitación con escritorio, ordenador y su avatar. Pendiente de decidir si Guillermo aprende Blender o se empieza con formas básicas hechas en código.
+1. ~~Subir el proyecto a GitHub~~ → github.com/GPGuille/portfolio (público).
+2. ~~Barra de menú superior~~ (hecha, con panel "Próximamente" por sección).
+3. Escena 3D: su habitación con escritorio, ordenador y su avatar, con formas básicas en código y objetos clicables.
 4. Secciones: sobre mí, habilidades, proyectos y contacto.
 5. Publicar en Vercel con dominio propio.
 

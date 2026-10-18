@@ -11,7 +11,7 @@ onMounted(() => {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const tl = gsap.timeline({ delay: props.delay ?? 0 });
   tl.fromTo(backgroundRef.value, { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power2.out" });
-  // Typewriter reveal: characters pop in one by one, in keeping with the retro font.
+  // Efecto máquina de escribir: las letras aparecen una a una, a juego con la fuente retro
   tl.from(copyRef.value!.querySelectorAll(".banner-char"), { opacity: 0, duration: 0.01, stagger: 0.04 }, 0.3);
 });
 </script>

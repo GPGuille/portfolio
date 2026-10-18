@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import Banner from "../../../components/Banner.vue";
+import { useI18n } from "../../../composables/useI18n";
 
 const nameLines = ["Guillermo", "González"];
-const jobTitle = "Full Stack Developer";
+const { t } = useI18n();
 </script>
 
 <template>
@@ -11,7 +12,7 @@ const jobTitle = "Full Stack Developer";
       <h1 class="hero-title">
         <span v-for="line in nameLines" :key="line" class="hero-title-line">{{ line }}</span>
       </h1>
-      <Banner class="hero-banner" :copy="jobTitle" />
+      <Banner class="hero-banner" :copy="t.hero.jobTitle" />
     </div>
   </section>
 </template>
@@ -23,7 +24,7 @@ const jobTitle = "Full Stack Developer";
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  // Same gap above and to the left; never tighter than 16px on small screens.
+  // Mismo margen arriba y a la izquierda; nunca menos de 16px en pantallas pequeñas
   padding: max(3vw, 16px);
 
   &-copy {
@@ -38,8 +39,8 @@ const jobTitle = "Full Stack Developer";
     letter-spacing: 0.02em;
     font-size: var(--font-size-title);
     line-height: 1.05;
-    // Pull the text up by the font's built-in space above the letters,
-    // so the visible gap on top matches the one on the left.
+    // Sube el texto lo que la fuente deja de aire sobre las letras,
+    // para que el hueco visible arriba sea igual que el de la izquierda
     margin-top: -0.17em;
 
     @include mixins.mq("sm") {
