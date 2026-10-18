@@ -1,33 +1,17 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import gsap from "gsap";
 import Banner from "../../../components/Banner.vue";
 
 const nameLines = ["Guillermo", "González"];
 const jobTitle = "Full Stack Developer";
-
-const titleRef = ref<HTMLHeadingElement | null>(null);
-
-onMounted(() => {
-  if (!titleRef.value || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  gsap.from(titleRef.value.querySelectorAll(".hero-title-line"), {
-    yPercent: 110,
-    duration: 0.9,
-    ease: "power3.out",
-    stagger: 0.12,
-  });
-});
 </script>
 
 <template>
   <section class="hero" id="hero">
     <div class="hero-copy">
-      <h1 ref="titleRef" class="hero-title">
-        <span v-for="line in nameLines" :key="line" class="hero-title-mask">
-          <span class="hero-title-line">{{ line }}</span>
-        </span>
+      <h1 class="hero-title">
+        <span v-for="line in nameLines" :key="line" class="hero-title-line">{{ line }}</span>
       </h1>
-      <Banner class="hero-banner" :copy="jobTitle" :delay="0.7" />
+      <Banner class="hero-banner" :copy="jobTitle" />
     </div>
   </section>
 </template>
@@ -37,14 +21,10 @@ onMounted(() => {
   min-height: 100vh;
   min-height: 100svh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 24px;
-
-  @include mixins.mq("md") {
-    justify-content: flex-start;
-    padding: 0 8vw;
-  }
+  align-items: flex-start;
+  justify-content: flex-start;
+  // Same gap above and to the left; never tighter than 16px on small screens.
+  padding: max(3vw, 16px);
 
   &-copy {
     position: relative;
@@ -55,14 +35,20 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     font-weight: 900;
+    letter-spacing: 0.02em;
     font-size: var(--font-size-title);
     line-height: 1.05;
-  }
+    // Pull the text up by the font's built-in space above the letters,
+    // so the visible gap on top matches the one on the left.
+    margin-top: -0.17em;
 
-  &-title-mask {
-    display: block;
-    overflow: hidden;
-    padding-bottom: 0.06em;
+    @include mixins.mq("sm") {
+      font-size: var(--font-size-title-md);
+    }
+
+    @include mixins.mq("xl") {
+      font-size: var(--font-size-title-lg);
+    }
   }
 
   &-title-line {

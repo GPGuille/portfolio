@@ -1,6 +1,15 @@
 @use "./reset.scss";
 @use "./variables.scss";
 
+// ProFont (MIT, see ../fonts/profont/LICENSE), from tobiasjung.name/profont
+@font-face {
+  font-family: "ProFont";
+  src: url("../fonts/profont/ProFontWindows-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 html {
   background: var(--color-background);
   color: var(--color-text);
