@@ -56,7 +56,10 @@ src/
     Home.vue                 página principal
     components/Hero.vue      portada: "Guillermo / González" + "Full Stack Developer"
   three/
-    index.ts                 renderer, escena y cámara (escena vacía por ahora)
+    index.ts                 renderer, luces, sombras y cámara
+    palette.ts               colores de la habitación (sacados de fotos de su oficina real)
+    room/                    la habitación, una pieza por archivo (cajoneras, tablero…)
+    textures/                texturas generadas en código (veta de madera), sin imágenes externas
     shaders/                 shaders GLSL
 ```
 
@@ -71,6 +74,8 @@ src/
 - **Menú superior** con las mismas secciones (Sobre mí, Skills, Proyectos, Certificaciones, Contacto). Es obligatorio, no un extra: es la navegación en móvil y para teclado o lector de pantalla. En móvil se pliega en un botón de menú.
 - El menú y los objetos 3D comparten el estado `activeSection` de `src/composables/useSection.ts`; la sección abierta se muestra en `SectionPanel.vue`.
 - **Dos idiomas** (español por defecto, botón ES/EN). Todos los textos van en `src/i18n/messages.ts`; nada de textos sueltos en los componentes.
+- La habitación se inspira en la oficina real de Guillermo (suelo de madera clara, dos cajoneras grises de 5 cajones, tablero de nogal, dos monitores, teclado crema, alfombrilla de fieltro gris, estor beige), con estilo parecido pero no idéntico. Se construye pieza a pieza y él la revisa en cada paso.
+- Escritorio: tablero de nogal de 180 × 80 × 6 cm (grueso a propósito, estilo maqueta) sobre dos cajoneras; sin suelo visible, solo sombra sobre el fondo crema. Encima irán monitor, teclado crema como el suyo, ratón y alfombrilla de fieltro gris; delante, la silla; al lado, una estantería con baldas (Certificaciones).
 - La habitación se empieza con formas básicas hechas en código; los modelos de Blender sustituirán los objetos uno a uno más adelante.
 - Los comentarios del código van en español.
 
