@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import gsap from "gsap";
-import Banner from "./Banner.vue";
+import Banner from "../../../components/Banner.vue";
 
-const name = ["Guillermo", "González"];
+const nameLines = ["Guillermo", "González"];
 const jobTitle = "Full Stack Developer";
 
 const titleRef = ref<HTMLHeadingElement | null>(null);
@@ -20,14 +20,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="hero">
+  <section class="hero" id="hero">
     <div class="hero-copy">
       <h1 ref="titleRef" class="hero-title">
-        <span v-for="line in name" :key="line" class="hero-title-mask">
+        <span v-for="line in nameLines" :key="line" class="hero-title-mask">
           <span class="hero-title-line">{{ line }}</span>
         </span>
       </h1>
-      <Banner class="hero-banner" :copy="jobTitle" />
+      <Banner class="hero-banner" :copy="jobTitle" :delay="0.7" />
     </div>
   </section>
 </template>
@@ -38,7 +38,13 @@ onMounted(() => {
   min-height: 100svh;
   display: flex;
   align-items: center;
-  padding: 0 max(24px, 8vw);
+  justify-content: center;
+  padding: 0 24px;
+
+  @include mixins.mq("md") {
+    justify-content: flex-start;
+    padding: 0 8vw;
+  }
 
   &-copy {
     position: relative;
@@ -51,7 +57,6 @@ onMounted(() => {
     font-weight: 900;
     font-size: var(--font-size-title);
     line-height: 1.05;
-    letter-spacing: 0.02em;
   }
 
   &-title-mask {
@@ -66,18 +71,12 @@ onMounted(() => {
 
   &-banner {
     position: absolute;
-    right: -24px;
+    right: -8px;
     bottom: 0;
     transform: rotate(-5deg) translateY(75%);
-  }
-}
 
-@media (max-width: 640px) {
-  .hero {
-    justify-content: center;
-
-    &-banner {
-      right: -8px;
+    @include mixins.mq("md") {
+      right: -24px;
     }
   }
 }

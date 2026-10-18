@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import Hero from "./components/Hero.vue";
+import { onMounted, onBeforeUnmount } from "vue";
+import Experience from "./components/Experience.vue";
+import Home from "./features/home/Home.vue";
+import { startScroll, stopScroll } from "./composables/useScroll";
+
+onMounted(startScroll);
+onBeforeUnmount(stopScroll);
 </script>
 
 <template>
-  <main>
-    <Hero />
-  </main>
+  <Experience />
+  <Home />
 </template>

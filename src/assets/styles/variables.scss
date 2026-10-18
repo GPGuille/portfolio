@@ -1,0 +1,20 @@
+:root {
+  // Colores
+  --color-background: #f5efe6;
+  --color-text: #2d2a24;
+  --color-text-soft: #5f5646;
+  --color-banner: #263c70;
+  --color-white: #ffffff;
+
+  // Tipografía
+  --font-main: "Urbanist", system-ui, sans-serif;
+  --font-pixel: "Pixelify Sans", ui-monospace, monospace;
+  --font-size-title: clamp(60px, 10.5vw, 160px);
+
+  // Movimiento
+  --ease-smooth: cubic-bezier(0.6, 0, 0.25, 1);
+
+  // Capas
+  --z-experience: 0;
+  --z-content: 10;
+}

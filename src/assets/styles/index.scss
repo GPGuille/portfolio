@@ -1,0 +1,15 @@
+@use "./reset.scss";
+@use "./variables.scss";
+
+html {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-main);
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-text);
+  color: var(--color-white);
+}

@@ -1,6 +1,19 @@
-# Portfolio de Guillermo
+# Portfolio de Guillermo González
 
-Portfolio interactivo hecho con **Vue 3**, **TypeScript** y **Vite**, con animaciones de **GSAP**. Más adelante: **Three.js** para la escena 3D, **Lenis** para el scroll y **Howler** para los sonidos.
+Portfolio interactivo en 3D.
+
+## Tecnologías
+
+| Herramienta | Para qué |
+| --- | --- |
+| Vue 3 + TypeScript | La web y sus secciones |
+| Vite | Servidor de desarrollo y compilación |
+| SCSS | Estilos (con mixins de breakpoints en `src/assets/styles/mixins.scss`) |
+| Three.js | La escena 3D (`src/three`) |
+| vite-plugin-glsl | Importar shaders `.glsl` (`src/three/shaders`) |
+| GSAP | Animaciones y reloj común de la web |
+| Lenis | Scroll suave (`src/composables/useScroll.ts`) |
+| Howler | Sonidos |
 
 ## Comandos
 
@@ -13,10 +26,12 @@ Portfolio interactivo hecho con **Vue 3**, **TypeScript** y **Vite**, con animac
 
 ## Estructura
 
-- `src/components/Hero.vue`: portada con el nombre y el título.
-- `src/components/Banner.vue`: la etiqueta azul inclinada del título.
-- `src/styles/index.scss`: colores, fuentes y estilos base.
-
-## Créditos
-
-Diseño inspirado en el portfolio de David Heckhoff (https://david-hckh.com). El código de este proyecto está escrito desde cero; no reutiliza código de su repositorio.
+```
+src/
+  assets/styles/     colores, fuentes, reset y mixins
+  components/        piezas reutilizables (Banner, Experience)
+  composables/       lógica compartida (scroll)
+  features/home/     la página principal y sus secciones
+  three/             la escena 3D
+    shaders/         shaders GLSL
+```
