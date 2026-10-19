@@ -5,8 +5,9 @@ import { roundedRect } from "../geometry/roundedRect";
 import { palette } from "../palette";
 import { createCodeScreenTexture } from "../textures/createCodeScreenTexture";
 
-// iMac de 24" como referencia, en estilo juguete: un 15 % más grande, cuerpo grueso
-// con esquinas muy redondeadas, marco blanco gordito, barbilla de color y pie robusto
+// iMac de 24" como referencia, en estilo juguete: cuerpo grueso con esquinas muy
+// redondeadas, marco blanco gordito, barbilla de color y pie robusto.
+// Las medidas son las del diseño base; el monitor entero se escala con MONITOR_SCALE
 const BODY = { width: 0.63, height: 0.44, depth: 0.034, corner: 0.03 };
 const CHIN = 0.085;
 const BEZEL = 0.022;
@@ -23,15 +24,22 @@ const STAND_TOP = new Vector3(0, BODY_BOTTOM + BODY.height * 0.35, BODY_CENTER_Z
 const WHITE_PANEL = { width: BODY.width - 0.012, height: BODY.height - CHIN };
 const SCREEN = { width: WHITE_PANEL.width - BEZEL * 2, height: WHITE_PANEL.height - BEZEL * 2 };
 
-export const MONITOR_FOOT_DEPTH = FOOT.depth;
+// Grande porque será clicable (Proyectos), pero en proporción con el teclado y el ratón
+// (que van a 1,2): monitor de 82 cm de ancho con pantalla de 75 cm
+export const MONITOR_SCALE = 1.3;
+export const MONITOR_FOOT_DEPTH = FOOT.depth * MONITOR_SCALE;
+export const MONITOR_HEIGHT = (BODY_BOTTOM + BODY.height) * MONITOR_SCALE;
 // Centro de la pantalla respecto al origen del monitor (para encuadres y para Proyectos)
-export const MONITOR_SCREEN_CENTER = new Vector3(0, BODY_BOTTOM + CHIN + WHITE_PANEL.height / 2, BODY_FRONT_Z);
+export const MONITOR_SCREEN_CENTER = new Vector3(0, BODY_BOTTOM + CHIN + WHITE_PANEL.height / 2, BODY_FRONT_Z).multiplyScalar(
+  MONITOR_SCALE,
+);
 
 const roundedPlane = (width: number, height: number, radius: number) =>
   new ShapeGeometry(roundedRect(new Shape(), width, height, radius), 16);
 
 export const createMonitor = () => {
   const group = new Group();
+  const panelCenterY = BODY_BOTTOM + CHIN + WHITE_PANEL.height / 2;
   const shell = new MeshStandardMaterial({ color: palette.monitorBody, roughness: 0.6 });
 
   const foot = new Mesh(new RoundedBoxGeometry(FOOT.width, FOOT.thickness, FOOT.depth, 5, 0.007), shell);
@@ -57,7 +65,7 @@ export const createMonitor = () => {
     roundedPlane(WHITE_PANEL.width, WHITE_PANEL.height, BODY.corner - 0.006),
     new MeshStandardMaterial({ color: palette.monitorBezel, roughness: 0.5 }),
   );
-  whitePanel.position.set(0, MONITOR_SCREEN_CENTER.y, BODY_FRONT_Z + 0.0005);
+  whitePanel.position.set(0, panelCenterY, BODY_FRONT_Z + 0.0005);
 
   const screen = new Mesh(
     roundedPlane(SCREEN.width, SCREEN.height, 0.012),
@@ -75,8 +83,9 @@ export const createMonitor = () => {
   for (let index = 0; index < uv.count; index++) {
     uv.setXY(index, uv.getX(index) / SCREEN.width + 0.5, uv.getY(index) / SCREEN.height + 0.5);
   }
-  screen.position.set(0, MONITOR_SCREEN_CENTER.y, BODY_FRONT_Z + 0.001);
+  screen.position.set(0, panelCenterY, BODY_FRONT_Z + 0.001);
 
   group.add(foot, plate, body, whitePanel, screen);
+  group.scale.setScalar(MONITOR_SCALE);
   return group;
 };
