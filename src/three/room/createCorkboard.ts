@@ -1,6 +1,7 @@
 import { BoxGeometry, ExtrudeGeometry, Group, Mesh, MeshStandardMaterial, Path, PlaneGeometry, Shape } from "three";
 import { palette } from "../palette";
-import { createCorkTexture } from "../textures/createCorkTexture";
+import { roundedRect } from "../geometry/roundedRect";
+import { createSpeckleTexture } from "../textures/createSpeckleTexture";
 
 export const CORKBOARD_SIZE = { width: 1, height: 0.68, depth: 0.06 };
 
@@ -9,22 +10,6 @@ const FRAME = 0.06;
 const BEVEL = 0.016;
 // El corcho queda hundido dentro del marco
 const CORK_Z = -0.008;
-
-// Rectángulo con las esquinas redondeadas, centrado en el origen
-const roundedRect = <T extends Shape | Path>(path: T, width: number, height: number, radius: number) => {
-  const x = -width / 2;
-  const y = -height / 2;
-  path.moveTo(x + radius, y);
-  path.lineTo(x + width - radius, y);
-  path.quadraticCurveTo(x + width, y, x + width, y + radius);
-  path.lineTo(x + width, y + height - radius);
-  path.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  path.lineTo(x + radius, y + height);
-  path.quadraticCurveTo(x, y + height, x, y + height - radius);
-  path.lineTo(x, y + radius);
-  path.quadraticCurveTo(x, y, x + radius, y);
-  return path;
-};
 
 // Marco de una sola pieza: un rectángulo redondeado con un hueco, extruido
 // con los cantos biselados para que quede gordito por dentro y por fuera
@@ -66,7 +51,7 @@ export const createCorkboard = () => {
   const cork = new Mesh(
     new PlaneGeometry(width - FRAME * 2 + 0.01, height - FRAME * 2 + 0.01),
     new MeshStandardMaterial({
-      map: createCorkTexture({ base: palette.cork, dark: palette.corkDark, light: palette.corkLight }),
+      map: createSpeckleTexture({ base: palette.cork, dark: palette.corkDark, light: palette.corkLight }),
       roughness: 1,
     }),
   );

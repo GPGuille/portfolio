@@ -74,6 +74,7 @@ src/
 - **Dos idiomas** (español por defecto, botón ES/EN). Todos los textos van en `src/i18n/messages.ts`; nada de textos sueltos en los componentes.
 - La habitación se inspira en la oficina real de Guillermo (suelo de madera clara, dos cajoneras grises de 5 cajones, tablero de nogal, dos monitores, teclado crema, alfombrilla de fieltro gris, estor beige), con estilo parecido pero no idéntico. Se construye pieza a pieza y él la revisa en cada paso.
 - Escritorio: tablero de nogal de 180 × 80 × 5 cm sobre dos cajoneras de 42 × 77 × 70 cm (mesa a 75 cm, altura estándar), a ras de lados y fondo y con 3 cm de vuelo por delante, a 5 mm de la pared; sin suelo visible, solo sombra sobre el fondo crema.
+- Sobre la mesa: alfombrilla de fieltro gris antracita 80 × 32 cm con esquinas redondeadas (a 10 cm del borde); teclado TKL de 87 teclas a escala real (unidad 19,05 mm) con carcasa champán, teclas crema/beige, Esc y Enter marrones y ligera inclinación, sin cable; ratón blanco plano estilo Apple Magic Mouse (11,4 × 5,7 × 2,15 cm) a la derecha.
 - Tablón (Skills): 100 × 68 cm, marco crema de una pieza con el corcho hundido, borde inferior a 1,40 m para dejar sitio al monitor. Vacío de momento.
 - **Medidas reales al milímetro:** la escena usa metros reales y proporciones de muebles reales; cualquier pieza nueva debe respetar alturas y holguras reales.
 - **Encuadre automático** (`src/three/framing.ts`): la cámara calcula la caja de los muebles y sus sombras y la encaja en el hueco libre de la pantalla con el mismo margen que el texto. Los elementos HTML que la escena no puede pisar llevan `data-stage="side"` (nombre, etiqueta) o `data-stage="top"` (menú). Nada de desplazamientos de cámara a mano.
@@ -88,7 +89,7 @@ src/
 
 1. ~~Subir el proyecto a GitHub~~ → github.com/GPGuille/portfolio (público).
 2. ~~Barra de menú superior~~ (hecha, con panel "Próximamente" por sección).
-3. Escena 3D (en curso): hechos el escritorio y el tablón. Faltan monitor, teclado, ratón, alfombrilla, silla, estantería y avatar; después, objetos clicables.
+3. Escena 3D (en curso): hechos el escritorio, el tablón, la alfombrilla, el teclado y el ratón. Faltan monitor, silla, estantería y avatar; después, objetos clicables.
 4. Secciones: sobre mí, skills, proyectos, certificaciones y contacto.
 5. Favicon e imagen para compartir el enlace (og:image).
 6. Publicar en Vercel con dominio propio.

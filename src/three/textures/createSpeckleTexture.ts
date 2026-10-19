@@ -1,10 +1,11 @@
 import { CanvasTexture, SRGBColorSpace } from "three";
 import { createRandom } from "./createRandom";
 
-type CorkColors = { base: string; dark: string; light: string };
+type SpeckleColors = { base: string; dark: string; light: string };
 
-// Corcho: miles de motas pequeñas más claras y más oscuras sobre el color base
-export const createCorkTexture = ({ base, dark, light }: CorkColors, seed = 3) => {
+// Material moteado (corcho, fieltro…): miles de motas pequeñas más claras y más oscuras
+// sobre el color base
+export const createSpeckleTexture = ({ base, dark, light }: SpeckleColors, seed = 3) => {
   const random = createRandom(seed);
   const canvas = document.createElement("canvas");
   canvas.width = 1024;
