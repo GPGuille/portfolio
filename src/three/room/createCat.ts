@@ -1,13 +1,56 @@
-import { ConeGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TorusGeometry } from "three";
+import {
+  CatmullRomCurve3,
+  ConeGeometry,
+  Group,
+  Mesh,
+  MeshStandardMaterial,
+  SphereGeometry,
+  TorusGeometry,
+  TubeGeometry,
+  Vector3,
+} from "three";
 import { palette } from "../palette";
+import { createFurTexture } from "../textures/createFurTexture";
+
+// Tubo que se afina a lo largo de una curva: se crea con grosor constante y luego cada anillo
+// se acerca a su centro según lo avanzado del recorrido
+const createTaperedTube = (path: CatmullRomCurve3, startRadius: number, endRadius: number, material: MeshStandardMaterial) => {
+  const tubular = 48;
+  const radial = 14;
+  const geometry = new TubeGeometry(path, tubular, startRadius, radial);
+  const positions = geometry.attributes.position!;
+  const center = new Vector3();
+  const vertex = new Vector3();
+  for (let ring = 0; ring <= tubular; ring++) {
+    const t = ring / tubular;
+    path.getPointAt(t, center);
+    const scale = (startRadius + (endRadius - startRadius) * t) / startRadius;
+    for (let side = 0; side <= radial; side++) {
+      const index = ring * (radial + 1) + side;
+      vertex.fromBufferAttribute(positions, index).sub(center).multiplyScalar(scale).add(center);
+      positions.setXYZ(index, vertex.x, vertex.y, vertex.z);
+    }
+  }
+  geometry.computeVertexNormals();
+  const mesh = new Mesh(geometry, material);
+  mesh.castShadow = true;
+  return mesh;
+};
 
 // Gato British Shorthair azul durmiendo enroscado, en estilo juguete: cuerpo como una "hogaza",
 // cabeza redonda con mofletes, orejas pequeñas, ojos cerrados y la cola rodeando el cuerpo.
 // Mide unos 42 cm de largo. Origen: debajo del centro del cuerpo; la cara mira hacia +Z
 export const createCat = () => {
   const group = new Group();
-  const fur = new MeshStandardMaterial({ color: palette.cat, roughness: 0.9 });
-  const furLight = new MeshStandardMaterial({ color: palette.catLight, roughness: 0.9 });
+  // Pelo corto y denso con relieve de mechones, como un British de verdad
+  const furMaterial = (base: string, dark: string, light: string, seed: number) => {
+    const { map, bumpMap } = createFurTexture({ base, dark, light }, seed);
+    map.repeat.set(3, 2);
+    bumpMap.repeat.set(3, 2);
+    return new MeshStandardMaterial({ map, bumpMap, bumpScale: 1.2, roughness: 1 });
+  };
+  const fur = furMaterial(palette.cat, palette.catDark, palette.catLight, 41);
+  const furLight = furMaterial(palette.catLight, palette.cat, palette.catLighter, 42);
   const nose = new MeshStandardMaterial({ color: palette.catNose, roughness: 0.6 });
   const line = new MeshStandardMaterial({ color: palette.catLine, roughness: 0.8 });
   const sphere = new SphereGeometry(1, 32, 20);
@@ -55,13 +98,21 @@ export const createCat = () => {
     group.add(eye);
   }
 
-  // Cola gruesa rodeando el cuerpo por la derecha hasta delante
-  const tail = new Mesh(new TorusGeometry(0.15, 0.028, 14, 32, Math.PI * 0.9), fur);
-  tail.rotation.x = -Math.PI / 2;
-  tail.rotation.z = -Math.PI * 0.55;
-  tail.position.set(0.0, 0.03, 0.0);
-  tail.castShadow = true;
-  group.add(tail);
+  // Cola corta y gruesa de British: sale del costado trasero derecho, pasa por encima del borde
+  // de la cama y la punta asoma por fuera, hacia atrás. Se afina de la base a la punta, que es redondeada.
+  // Medidas en el sistema del gato, que va sobre el cojín de la cama (alfombra en y ≈ -0.045)
+  const tailPath = new CatmullRomCurve3([
+    new Vector3(0.12, 0.075, -0.06),
+    new Vector3(0.18, 0.11, -0.07),
+    new Vector3(0.245, 0.112, -0.08),
+    new Vector3(0.285, 0.07, -0.095),
+    new Vector3(0.298, 0.028, -0.115),
+  ]);
+  const baseRadius = 0.03;
+  const tipRadius = 0.019;
+  group.add(createTaperedTube(tailPath, baseRadius, tipRadius, fur));
+  const tip = tailPath.getPointAt(1);
+  part(fur, [tipRadius, tipRadius, tipRadius], [tip.x, tip.y, tip.z]);
 
   return group;
 };

@@ -22,7 +22,9 @@ const getStage = (width: number, height: number): Stage => {
   const side = rectsOf("side");
   const top = rectsOf("top");
 
-  if (width >= SIDE_BY_SIDE_MIN_WIDTH) {
+  // Al lado del nombre solo en pantallas anchas y apaisadas; en vertical (tablets) va debajo,
+  // donde tiene todo el ancho
+  if (width >= SIDE_BY_SIDE_MIN_WIDTH && width > height) {
     return { left: rights(side) + gutter, top: bottoms(top), right: width - gutter, bottom: height - gutter / 2 };
   }
   return { left: gutter, top: bottoms([...side, ...top]) + gutter, right: width - gutter, bottom: height - gutter / 2 };
