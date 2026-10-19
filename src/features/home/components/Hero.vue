@@ -24,13 +24,12 @@ const { t } = useI18n();
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  // Mismo margen arriba y a la izquierda; nunca menos de 16px en pantallas pequeñas.
-  // En móvil el nombre baja bajo la fila del menú (botón de 44px) para no chocar con él
-  padding: max(3vw, 16px);
-  padding-top: calc(max(3vw, 16px) + 44px + 16px);
+  // Mismo margen arriba y a la izquierda. En móvil el nombre baja bajo la fila del menú
+  padding: var(--gutter);
+  padding-top: calc(var(--gutter) + var(--tap-size) + var(--space-4));
 
   @include mixins.mq("md") {
-    padding-top: max(3vw, 16px);
+    padding-top: var(--gutter);
   }
 
   &-copy {
@@ -39,22 +38,20 @@ const { t } = useI18n();
   }
 
   &-title {
-    display: flex;
-    flex-direction: column;
     font-weight: 900;
     letter-spacing: 0.02em;
     font-size: var(--font-size-title);
     line-height: 1.05;
-    // Sube el texto lo que la fuente deja de aire sobre las letras,
-    // para que el hueco visible arriba sea igual que el de la izquierda
-    margin-top: -0.17em;
+    // Recorta el aire que la fuente deja sobre las mayúsculas y bajo la línea base:
+    // el borde superior de la G queda justo en el margen, alineado con el menú
+    text-box: trim-both cap alphabetic;
+    // La G trae ~0,045em de espacio propio a la izquierda: se compensa para que
+    // su borde visible caiga exactamente en el margen (alineación óptica)
+    margin-left: -0.045em;
 
-    @include mixins.mq("sm") {
-      font-size: var(--font-size-title-md);
-    }
-
-    @include mixins.mq("xl") {
-      font-size: var(--font-size-title-lg);
+    // Navegadores sin text-box (Firefox): aproximación del mismo recorte
+    @supports not (text-box: trim-both cap alphabetic) {
+      margin-top: -0.17em;
     }
   }
 
@@ -62,15 +59,12 @@ const { t } = useI18n();
     display: block;
   }
 
+  // La etiqueta se coloca en proporción al nombre, para caer siempre en el mismo punto
   &-banner {
     position: absolute;
-    right: -8px;
-    bottom: 0;
+    right: calc(var(--font-size-title) * -0.27);
+    bottom: calc(var(--font-size-title) * -0.2);
     transform: rotate(-5deg) translateY(75%);
-
-    @include mixins.mq("md") {
-      right: -24px;
-    }
   }
 }
 </style>

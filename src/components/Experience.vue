@@ -15,7 +15,8 @@ const rectsOf = (zone: "side" | "top") =>
 // Los elementos marcados con data-stage="side" (nombre y etiqueta) y data-stage="top" (menú)
 // son los que la habitación no puede pisar
 const getStage = (width: number, height: number): Stage => {
-  const gutter = Math.max(width * 0.03, 16);
+  // El mismo margen que usa el CSS (--gutter), ya resuelto a píxeles por el navegador
+  const gutter = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--gutter")) || 16;
   const side = rectsOf("side");
   const top = rectsOf("top");
 

@@ -41,10 +41,10 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 .panel {
   position: fixed;
   z-index: var(--z-panel);
-  right: max(3vw, 16px);
-  bottom: max(3vw, 16px);
-  left: max(3vw, 16px);
-  padding: 24px;
+  right: var(--gutter);
+  bottom: var(--gutter);
+  left: var(--gutter);
+  padding: var(--space-5);
   background: var(--color-background);
   outline: 4px solid var(--color-text);
 
@@ -57,8 +57,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 12px;
+    gap: var(--space-4);
+    margin-bottom: var(--space-3);
   }
 
   &-title {
@@ -67,8 +67,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
   }
 
   &-close {
-    width: 44px;
-    height: 44px;
+    width: var(--tap-size);
+    height: var(--tap-size);
     border: 0;
     background: var(--color-banner);
     color: var(--color-white);
@@ -79,7 +79,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 
   &-body {
     color: var(--color-text-soft);
-    font-size: 18px;
+    font-size: var(--font-size-nav);
   }
 }
 
@@ -91,7 +91,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 .panel-enter-from,
 .panel-leave-to {
   opacity: 0;
-  transform: translateY(16px);
+  transform: translateY(var(--space-4));
 }
 
 @media (prefers-reduced-motion: reduce) {

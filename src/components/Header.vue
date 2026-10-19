@@ -37,7 +37,7 @@ const select = (id: SectionId) => {
             :aria-current="activeSection === id ? 'true' : undefined"
             @click="select(id)"
           >
-            {{ t.sections[id] }}
+            <span class="header-link-label">{{ t.sections[id] }}</span>
           </button>
         </li>
       </ul>
@@ -55,13 +55,14 @@ const select = (id: SectionId) => {
   right: 0;
   z-index: var(--z-header);
   display: flex;
-  align-items: center;
-  gap: 12px;
-  // Mismo margen que la portada, para que todo quede alineado
-  padding: max(3vw, 16px);
+  // Todo alineado arriba: el borde superior del texto del menú coincide con el de la G del nombre
+  align-items: flex-start;
+  gap: var(--space-3);
+  // Mismo margen que la portada
+  padding: var(--gutter);
 
   @include mixins.mq("xl") {
-    gap: 28px;
+    gap: var(--space-6);
   }
 
   &-nav {
@@ -72,8 +73,11 @@ const select = (id: SectionId) => {
   &-toggle {
     display: grid;
     place-items: center;
-    width: 44px;
-    height: 44px;
+    width: var(--tap-size);
+    height: var(--tap-size);
+    // Sube el botón para que las rayas del icono (19px de alto) empiecen justo en el margen;
+    // la zona pulsable sigue siendo de 44px
+    margin-top: calc((var(--tap-size) - 19px) / -2);
     border: 0;
     background: none;
     color: inherit;
@@ -134,20 +138,20 @@ const select = (id: SectionId) => {
     // Móvil: lista desplegable bajo el botón
     &.is-open {
       position: absolute;
-      top: calc(100% + 8px);
+      top: calc(100% + var(--space-2));
       right: 0;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: var(--space-1);
       min-width: 200px;
-      padding: 12px;
+      padding: var(--space-3);
       background: var(--color-background);
       outline: 3px solid var(--color-text);
     }
 
     @include mixins.mq("xl") {
       display: flex;
-      gap: 28px;
+      gap: var(--space-6);
 
       &.is-open {
         position: static;
@@ -162,20 +166,32 @@ const select = (id: SectionId) => {
 
   &-link {
     position: relative;
+    // En bloque: si no, la línea de texto del <li> añade aire por encima y lo desalinea
+    display: block;
     width: 100%;
-    padding: 8px 4px;
+    padding: var(--space-2) var(--space-1);
     border: 0;
     background: none;
     color: inherit;
     font: inherit;
     font-weight: 700;
-    font-size: 18px;
+    font-size: var(--font-size-nav);
     letter-spacing: inherit;
     text-align: left;
     cursor: pointer;
 
     @include mixins.mq("xl") {
-      padding: 4px 0;
+      padding: 0;
+    }
+
+    // En la barra, el texto se recorta a la altura de las mayúsculas para alinearlo con el nombre.
+    // Va en un bloque propio porque dentro de un <button> el recorte no se aplica
+    &-label {
+      display: block;
+
+      @include mixins.mq("xl") {
+        text-box: trim-both cap alphabetic;
+      }
     }
 
     // Subrayado que crece al pasar el ratón o al estar activa
@@ -186,6 +202,10 @@ const select = (id: SectionId) => {
       bottom: 0;
       width: 100%;
       height: 3px;
+
+      @include mixins.mq("xl") {
+        bottom: calc(var(--space-2) * -1);
+      }
       background: var(--color-banner);
       transform: scaleX(0);
       transform-origin: left center;
@@ -203,13 +223,13 @@ const select = (id: SectionId) => {
   }
 
   &-locale {
-    padding: 6px 10px;
+    padding: 0.35em 0.6em;
     border: 0;
     background: var(--color-banner);
     color: var(--color-white);
     font-family: var(--font-pixel);
     font-weight: 700;
-    font-size: 16px;
+    font-size: var(--font-size-small);
     transform: rotate(-5deg);
     cursor: pointer;
     transition: transform 0.3s var(--ease-smooth);

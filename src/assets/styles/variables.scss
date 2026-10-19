@@ -1,3 +1,13 @@
+@use "./mixins.scss";
+
+// Registrada como longitud para que el navegador la resuelva a píxeles:
+// así el código 3D puede leer el margen real (getComputedStyle)
+@property --gutter {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 16px;
+}
+
 :root {
   // Colores
   --color-background: #f5efe6;
@@ -6,12 +16,39 @@
   --color-banner: #263c70;
   --color-white: #ffffff;
 
-  // Tipografía
+  // Espacios: margen exterior común a todo (texto, menú, panel y escena 3D)
+  // y una escala fija para todo lo demás. Nada de valores sueltos
+  --gutter: max(3vw, 16px);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  // Tamaño mínimo de lo que se pulsa con el dedo (botón de menú)
+  --tap-size: 44px;
+
+  // Tipografía. El nombre y la etiqueta cambian a la vez y en los mismos saltos,
+  // para que su proporción (~3,2) sea siempre la misma
   --font-main: "Urbanist", system-ui, sans-serif;
   --font-pixel: "ProFont", ui-monospace, monospace;
   --font-size-title: 56px;
-  --font-size-title-md: 72px;
-  --font-size-title-lg: 88px;
+  --font-size-banner: 18px;
+  --font-size-nav: 18px;
+  --font-size-small: 16px;
+
+  @include mixins.mq("sm") {
+    --font-size-title: 72px;
+    --font-size-banner: 22px;
+  }
+
+  @include mixins.mq("xl") {
+    --font-size-title: 88px;
+    --font-size-banner: 28px;
+  }
 
   // Movimiento
   --ease-smooth: cubic-bezier(0.6, 0, 0.25, 1);

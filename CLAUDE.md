@@ -82,6 +82,9 @@ src/
 - El menú completo solo aparece desde 1280px; por debajo va plegado (si no, choca con el nombre). En móvil (<840px) el nombre baja bajo la fila del menú. Encima irán monitor, teclado crema como el suyo, ratón y alfombrilla de fieltro gris; delante, la silla; al lado, una estantería con baldas (Certificaciones).
 - La habitación se empieza con formas básicas hechas en código; los modelos de Blender sustituirán los objetos uno a uno más adelante.
 - Los comentarios del código van en español.
+- **Sistema de espacios** (`variables.scss`): margen exterior único `--gutter` (texto, menú, panel y escena 3D lo comparten; el 3D lo lee ya resuelto en px) y escala fija `--space-1`…`--space-8` (4, 8, 12, 16, 24, 32, 48, 64 px). Prohibidos los valores sueltos de espaciado.
+- **Tipografía por saltos** (`variables.scss`): `--font-size-title` 56/72/88 y `--font-size-banner` 18/22/28 cambian juntos en 480 y 1280 px (proporción ~3,2 constante). La etiqueta se coloca en proporción al tamaño del nombre.
+- **Alineación al píxel:** el borde superior de la G del nombre y el del texto del menú coinciden con el margen (`text-box: trim-both cap alphabetic`, con aproximación para Firefox). El nombre lleva compensación óptica a la izquierda (-0,045em) para que la G toque el margen. Verificado midiendo capturas a 1280, 1440 y 1920 px.
 
 ## Próximos pasos
 

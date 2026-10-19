@@ -29,11 +29,9 @@ onMounted(() => {
 .banner {
   position: relative;
   width: fit-content;
-  padding: 6px 12px;
-
-  @include mixins.mq("lg") {
-    padding: 8px 16px;
-  }
+  // El relleno va en proporción al texto, así crece con él en cada salto de tamaño
+  font-size: var(--font-size-banner);
+  padding: 0.3em 0.6em;
 
   &-background {
     position: absolute;
@@ -50,7 +48,6 @@ onMounted(() => {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    font-size: clamp(16px, 2.2vw, 30px);
     white-space: nowrap;
   }
 }
