@@ -3,9 +3,9 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { palette } from "../palette";
 import { createWoodTexture } from "../textures/createWoodTexture";
 
-// Tamaño pensado para que quepan monitor, teclado, ratón y alfombrilla con holgura;
-// el grosor exagerado es parte del estilo "maqueta"
-export const DESK_TOP_SIZE = { width: 1.8, depth: 0.8, thickness: 0.06 };
+// Tamaño pensado para que quepan monitor, teclado, ratón y alfombrilla con holgura.
+// Con las cajoneras de 70 cm, la mesa queda a 75 cm: altura estándar de escritorio
+export const DESK_TOP_SIZE = { width: 1.8, depth: 0.8, thickness: 0.05 };
 
 // Tablero de nogal que apoya sobre las dos cajoneras
 export const createDeskTop = () => {

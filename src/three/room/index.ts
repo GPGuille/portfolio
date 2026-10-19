@@ -4,14 +4,17 @@ import { createDeskTop, DESK_TOP_SIZE } from "./createDeskTop";
 import { createDrawerUnit, DRAWER_UNIT_SIZE } from "./createDrawerUnit";
 import { createFloorShadowCatcher, createWallShadowCatcher } from "./createShadowCatcher";
 
-// La pared (invisible) queda justo detrás del borde trasero del escritorio
-const WALL_Z = -DESK_TOP_SIZE.depth / 2 - 0.02;
+// La pared (invisible) queda a 5 mm del borde trasero del escritorio
+export const WALL_Z = -DESK_TOP_SIZE.depth / 2 - 0.005;
+
+// El tablón cuelga con su borde inferior a 1,40 m: por encima de un monitor de 27" con pie
+const CORKBOARD_BOTTOM = 1.4;
 
 // La habitación se monta por partes: escritorio (dos cajoneras y tablero) y tablón
 export const createRoom = () => {
   const room = new Group();
 
-  room.add(createFloorShadowCatcher());
+  room.add(createFloorShadowCatcher(WALL_Z));
 
   // Una cajonera en cada extremo, enrasadas con los lados y el fondo del tablero;
   // el tablero solo sobresale un poco por delante (la diferencia de profundidad)
@@ -31,7 +34,7 @@ export const createRoom = () => {
 
   // Tablón colgado en la pared, a la izquierda, dejando el centro libre para el monitor
   const corkboard = createCorkboard();
-  corkboard.position.set(-0.5, deskHeight + 0.55, WALL_Z + CORKBOARD_SIZE.depth / 2);
+  corkboard.position.set(-0.5, CORKBOARD_BOTTOM + CORKBOARD_SIZE.height / 2, WALL_Z + CORKBOARD_SIZE.depth / 2);
   room.add(corkboard);
 
   // Pared invisible solo detrás del tablón, algo desplazada hacia donde cae su sombra

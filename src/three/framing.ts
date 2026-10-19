@@ -1,0 +1,104 @@
+import { Box3, Object3D, PerspectiveCamera, Vector3 } from "three";
+
+// Zona de la pantalla (en píxeles) donde debe caber la habitación
+export type Stage = { left: number; top: number; right: number; bottom: number };
+
+// A partir de este ancho la habitación va a la derecha del nombre; por debajo, debajo de él
+export const SIDE_BY_SIDE_MIN_WIDTH = 840;
+
+// Puntos que tienen que verse: las esquinas de cada mueble y dónde caen sus sombras
+// en el suelo (solo delante de la pared, que es donde el suelo existe)
+export const collectFramePoints = (root: Object3D, lightDirection: Vector3, wallZ: number) => {
+  root.updateMatrixWorld(true);
+  const points: Vector3[] = [];
+  const box = new Box3();
+
+  for (const child of root.children) {
+    if (child.userData.isShadowCatcher) continue;
+    box.setFromObject(child);
+    for (const x of [box.min.x, box.max.x]) {
+      for (const y of [box.min.y, box.max.y]) {
+        for (const z of [box.min.z, box.max.z]) {
+          const corner = new Vector3(x, y, z);
+          points.push(corner);
+          if (y <= 0) continue;
+          const shadow = corner.clone().addScaledVector(lightDirection, -y / lightDirection.y);
+          if (shadow.z >= wallZ) {
+            points.push(shadow);
+            continue;
+          }
+          // La sombra pasaría por detrás de la pared: se recorta en la línea donde la pared
+          // toca el suelo. Los bordes de sombra que llegan ahí van en profundidad (misma x),
+          // así que el punto de corte conserva la x de la sombra
+          points.push(new Vector3(shadow.x, 0, wallZ));
+        }
+      }
+    }
+  }
+
+  return points;
+};
+
+const projectToScreen = (points: Vector3[], camera: PerspectiveCamera, width: number, height: number) => {
+  let left = Infinity;
+  let right = -Infinity;
+  let top = Infinity;
+  let bottom = -Infinity;
+  let behindCamera = false;
+
+  for (const point of points) {
+    const projected = point.clone().project(camera);
+    if (projected.z > 1) behindCamera = true;
+    const x = ((projected.x + 1) / 2) * width;
+    const y = ((1 - projected.y) / 2) * height;
+    left = Math.min(left, x);
+    right = Math.max(right, x);
+    top = Math.min(top, y);
+    bottom = Math.max(bottom, y);
+  }
+
+  return { left, right, top, bottom, behindCamera };
+};
+
+// Coloca la cámara en la dirección dada a la distancia justa para que todos los puntos
+// quepan en el escenario, y desplaza la imagen para centrarlos en él
+export const fitCamera = (
+  camera: PerspectiveCamera,
+  points: Vector3[],
+  direction: Vector3,
+  stage: Stage,
+  width: number,
+  height: number,
+) => {
+  const target = new Box3().setFromPoints(points).getCenter(new Vector3());
+  const stageWidth = stage.right - stage.left;
+  const stageHeight = stage.bottom - stage.top;
+
+  camera.aspect = width / height;
+  camera.clearViewOffset();
+
+  const placeAt = (distance: number) => {
+    camera.position.copy(target).addScaledVector(direction, distance);
+    camera.lookAt(target);
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld();
+    return projectToScreen(points, camera, width, height);
+  };
+
+  // Búsqueda binaria de la distancia: lo más cerca posible sin salirse del escenario
+  let near = 0.5;
+  let far = 50;
+  for (let step = 0; step < 30; step++) {
+    const distance = (near + far) / 2;
+    const bounds = placeAt(distance);
+    const fits = !bounds.behindCamera && bounds.right - bounds.left <= stageWidth && bounds.bottom - bounds.top <= stageHeight;
+    if (fits) far = distance;
+    else near = distance;
+  }
+
+  const bounds = placeAt(far);
+  const offsetX = (bounds.left + bounds.right) / 2 - (stage.left + stage.right) / 2;
+  const offsetY = (bounds.top + bounds.bottom) / 2 - (stage.top + stage.bottom) / 2;
+  camera.setViewOffset(width, height, offsetX, offsetY, width, height);
+  camera.updateProjectionMatrix();
+};

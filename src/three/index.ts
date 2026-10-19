@@ -10,22 +10,24 @@ import {
   WebGLRenderer,
 } from "three";
 import gsap from "gsap";
+import { collectFramePoints, fitCamera, type Stage } from "./framing";
 import { palette } from "./palette";
-import { createRoom } from "./room";
+import { createRoom, WALL_Z } from "./room";
 
-const CAMERA_TARGET = new Vector3(0, 0.75, 0);
-const CAMERA_OFFSET = new Vector3(2.4, 1.9, 4.2);
-const DESKTOP_MIN_WIDTH = 840;
+// Desde dónde mira la cámara (solo cuenta la dirección; la distancia la calcula el encuadre)
+const CAMERA_DIRECTION = new Vector3(2.4, 1.9, 4.2).normalize();
 
-// La escena 3D vive en un canvas fijo detrás del contenido
-export const createExperience = (canvas: HTMLCanvasElement) => {
+// La escena 3D vive en un canvas fijo detrás del contenido.
+// getStage indica en qué zona de la pantalla debe caber la habitación
+export const createExperience = (canvas: HTMLCanvasElement, getStage: (width: number, height: number) => Stage) => {
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFSoftShadowMap;
 
   const scene = new Scene();
-  scene.add(createRoom());
+  const room = createRoom();
+  scene.add(room);
 
   // Luz suave y cálida: cielo claro arriba, rebote de madera abajo y un "sol" que da sombras
   scene.add(new HemisphereLight(palette.lightSky, palette.lightGround, 1.3));
@@ -45,34 +47,26 @@ export const createExperience = (canvas: HTMLCanvasElement) => {
   scene.add(sun);
 
   const camera = new PerspectiveCamera(35, 1, 0.1, 100);
+  const framePoints = collectFramePoints(room, sun.position.clone().normalize(), WALL_Z);
 
   const resize = () => {
     const { innerWidth: width, innerHeight: height } = window;
     renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-
-    // En pantallas verticales la cámara se aleja para que quepa la habitación
-    const distance = camera.aspect < 1 ? 1.7 : 1;
-    camera.position.copy(CAMERA_TARGET).addScaledVector(CAMERA_OFFSET, distance);
-    camera.lookAt(CAMERA_TARGET);
-
-    // En ordenador la habitación se desplaza a la derecha para dejar sitio al nombre;
-    // en móvil baja para quedar debajo
-    if (width >= DESKTOP_MIN_WIDTH) camera.setViewOffset(width, height, -width * 0.15, -height * 0.05, width, height);
-    else camera.setViewOffset(width, height, 0, -height * 0.12, width, height);
-
-    camera.updateProjectionMatrix();
+    fitCamera(camera, framePoints, CAMERA_DIRECTION, getStage(width, height), width, height);
   };
 
   const tick = () => renderer.render(scene, camera);
 
   resize();
   window.addEventListener("resize", resize);
+  // Las fuentes cambian el tamaño del nombre al cargar: se vuelve a encuadrar
+  document.fonts.ready.then(resize);
   gsap.ticker.add(tick);
 
   return {
     scene,
     camera,
+    resize,
     dispose: () => {
       gsap.ticker.remove(tick);
       window.removeEventListener("resize", resize);

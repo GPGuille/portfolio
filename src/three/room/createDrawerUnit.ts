@@ -2,8 +2,8 @@ import { Group, Mesh, MeshStandardMaterial, Shape, ShapeGeometry } from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { palette } from "../palette";
 
-// Proporcionada al tablero de 180 × 80: casi tan profunda como él
-export const DRAWER_UNIT_SIZE = { width: 0.42, height: 0.74, depth: 0.77 };
+// Casi tan profunda como el tablero de 180 × 80; 70 cm de alto, como sus Alex reales
+export const DRAWER_UNIT_SIZE = { width: 0.42, height: 0.7, depth: 0.77 };
 
 const DRAWER_COUNT = 5;
 const GAP = 0.008;

@@ -5,12 +5,18 @@ import { Mesh, PlaneGeometry, ShadowMaterial } from "three";
 const createCatcher = (width: number, height: number) => {
   const catcher = new Mesh(new PlaneGeometry(width, height), new ShadowMaterial({ opacity: 0.1 }));
   catcher.receiveShadow = true;
+  // No cuenta como parte visible de la escena a la hora de encuadrar la cámara
+  catcher.userData.isShadowCatcher = true;
   return catcher;
 };
 
-export const createFloorShadowCatcher = () => {
-  const catcher = createCatcher(4, 4);
+// Suelo invisible desde la pared hacia delante: detrás de la pared no hay suelo,
+// así que ahí no deben verse sombras
+export const createFloorShadowCatcher = (wallZ: number) => {
+  const depth = 3;
+  const catcher = createCatcher(4, depth);
   catcher.rotation.x = -Math.PI / 2;
+  catcher.position.z = wallZ + depth / 2;
   return catcher;
 };
 

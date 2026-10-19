@@ -15,7 +15,7 @@ const select = (id: SectionId) => {
 </script>
 
 <template>
-  <header class="header">
+  <header class="header" data-stage="top">
     <nav class="header-nav" :aria-label="t.nav.label">
       <button
         class="header-toggle"
@@ -60,7 +60,7 @@ const select = (id: SectionId) => {
   // Mismo margen que la portada, para que todo quede alineado
   padding: max(3vw, 16px);
 
-  @include mixins.mq("md") {
+  @include mixins.mq("xl") {
     gap: 28px;
   }
 
@@ -68,7 +68,7 @@ const select = (id: SectionId) => {
     position: relative;
   }
 
-  // Botón de menú: solo en pantallas pequeñas
+  // Botón de menú hasta pantallas anchas: por debajo de 1280px el menú completo choca con el nombre
   &-toggle {
     display: grid;
     place-items: center;
@@ -79,7 +79,7 @@ const select = (id: SectionId) => {
     color: inherit;
     cursor: pointer;
 
-    @include mixins.mq("md") {
+    @include mixins.mq("xl") {
       display: none;
     }
 
@@ -145,7 +145,7 @@ const select = (id: SectionId) => {
       outline: 3px solid var(--color-text);
     }
 
-    @include mixins.mq("md") {
+    @include mixins.mq("xl") {
       display: flex;
       gap: 28px;
 
@@ -174,7 +174,7 @@ const select = (id: SectionId) => {
     text-align: left;
     cursor: pointer;
 
-    @include mixins.mq("md") {
+    @include mixins.mq("xl") {
       padding: 4px 0;
     }
 

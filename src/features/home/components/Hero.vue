@@ -8,11 +8,11 @@ const { t } = useI18n();
 
 <template>
   <section class="hero" id="hero">
-    <div class="hero-copy">
+    <div class="hero-copy" data-stage="side">
       <h1 class="hero-title">
         <span v-for="line in nameLines" :key="line" class="hero-title-line">{{ line }}</span>
       </h1>
-      <Banner class="hero-banner" :copy="t.hero.jobTitle" />
+      <Banner class="hero-banner" data-stage="side" :copy="t.hero.jobTitle" />
     </div>
   </section>
 </template>
@@ -24,8 +24,14 @@ const { t } = useI18n();
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  // Mismo margen arriba y a la izquierda; nunca menos de 16px en pantallas pequeñas
+  // Mismo margen arriba y a la izquierda; nunca menos de 16px en pantallas pequeñas.
+  // En móvil el nombre baja bajo la fila del menú (botón de 44px) para no chocar con él
   padding: max(3vw, 16px);
+  padding-top: calc(max(3vw, 16px) + 44px + 16px);
+
+  @include mixins.mq("md") {
+    padding-top: max(3vw, 16px);
+  }
 
   &-copy {
     position: relative;

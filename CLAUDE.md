@@ -75,7 +75,11 @@ src/
 - El menú y los objetos 3D comparten el estado `activeSection` de `src/composables/useSection.ts`; la sección abierta se muestra en `SectionPanel.vue`.
 - **Dos idiomas** (español por defecto, botón ES/EN). Todos los textos van en `src/i18n/messages.ts`; nada de textos sueltos en los componentes.
 - La habitación se inspira en la oficina real de Guillermo (suelo de madera clara, dos cajoneras grises de 5 cajones, tablero de nogal, dos monitores, teclado crema, alfombrilla de fieltro gris, estor beige), con estilo parecido pero no idéntico. Se construye pieza a pieza y él la revisa en cada paso.
-- Escritorio: tablero de nogal de 180 × 80 × 6 cm (grueso a propósito, estilo maqueta) sobre dos cajoneras; sin suelo visible, solo sombra sobre el fondo crema. Encima irán monitor, teclado crema como el suyo, ratón y alfombrilla de fieltro gris; delante, la silla; al lado, una estantería con baldas (Certificaciones).
+- Escritorio: tablero de nogal de 180 × 80 × 5 cm sobre dos cajoneras de 42 × 77 × 70 cm (mesa a 75 cm, altura estándar), a ras de lados y fondo y con 3 cm de vuelo por delante, a 5 mm de la pared; sin suelo visible, solo sombra sobre el fondo crema.
+- Tablón (Skills): 100 × 68 cm, marco crema de una pieza con el corcho hundido, borde inferior a 1,40 m para dejar sitio al monitor. Vacío de momento.
+- **Medidas reales al milímetro:** la escena usa metros reales y proporciones de muebles reales; cualquier pieza nueva debe respetar alturas y holguras reales.
+- **Encuadre automático** (`src/three/framing.ts`): la cámara calcula la caja de los muebles y sus sombras y la encaja en el hueco libre de la pantalla con el mismo margen que el texto. Los elementos HTML que la escena no puede pisar llevan `data-stage="side"` (nombre, etiqueta) o `data-stage="top"` (menú). Nada de desplazamientos de cámara a mano.
+- El menú completo solo aparece desde 1280px; por debajo va plegado (si no, choca con el nombre). En móvil (<840px) el nombre baja bajo la fila del menú. Encima irán monitor, teclado crema como el suyo, ratón y alfombrilla de fieltro gris; delante, la silla; al lado, una estantería con baldas (Certificaciones).
 - La habitación se empieza con formas básicas hechas en código; los modelos de Blender sustituirán los objetos uno a uno más adelante.
 - Los comentarios del código van en español.
 
