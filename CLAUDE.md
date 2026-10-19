@@ -59,7 +59,7 @@ src/
     index.ts                 renderer, luces, sombras y cámara
     palette.ts               colores de la habitación (sacados de fotos de su oficina real)
     room/                    la habitación, una pieza por archivo (cajoneras, tablero…)
-    textures/                texturas generadas en código (veta de madera), sin imágenes externas
+    textures/                texturas generadas en código (madera, corcho), sin imágenes externas
     shaders/                 shaders GLSL
 ```
 

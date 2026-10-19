@@ -1,14 +1,7 @@
 import { CanvasTexture, SRGBColorSpace } from "three";
+import { createRandom } from "./createRandom";
 
 type WoodColors = { base: string; dark: string; light: string };
-
-// Generador de números pseudoaleatorios con semilla: la veta sale igual en cada carga
-const createRandom = (seed: number) => () => {
-  seed = (seed + 0x6d2b79f5) | 0;
-  let value = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-  value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
-  return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
-};
 
 // Veta de madera dibujada en un canvas: líneas onduladas a lo largo del tablero,
 // sin imágenes externas

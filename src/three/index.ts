@@ -13,8 +13,8 @@ import gsap from "gsap";
 import { palette } from "./palette";
 import { createRoom } from "./room";
 
-const CAMERA_TARGET = new Vector3(0, 0.4, 0);
-const CAMERA_OFFSET = new Vector3(2.2, 2, 3.6);
+const CAMERA_TARGET = new Vector3(0, 0.75, 0);
+const CAMERA_OFFSET = new Vector3(2.4, 1.9, 4.2);
 const DESKTOP_MIN_WIDTH = 840;
 
 // La escena 3D vive en un canvas fijo detrás del contenido
