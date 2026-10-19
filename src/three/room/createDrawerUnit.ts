@@ -6,7 +6,7 @@ import { palette } from "../palette";
 export const DRAWER_UNIT_SIZE = { width: 0.42, height: 0.7, depth: 0.77 };
 
 const DRAWER_COUNT = 5;
-const GAP = 0.008;
+const GAP = 0.012;
 
 // Tirador: el hueco en forma de arco en el borde superior de cada cajón
 const createHandleGeometry = () => {
@@ -19,7 +19,8 @@ const createHandleGeometry = () => {
   return new ShapeGeometry(shape, 12);
 };
 
-// Cajonera de cinco cajones, como las de debajo del escritorio
+// Cajonera de cinco cajones, como las de debajo del escritorio, en estilo juguete:
+// cuerpo con cantos muy redondeados y frentes gorditos bien separados
 export const createDrawerUnit = () => {
   const { width, height, depth } = DRAWER_UNIT_SIZE;
   const group = new Group();
@@ -29,7 +30,7 @@ export const createDrawerUnit = () => {
   const handleMaterial = new MeshStandardMaterial({ color: palette.drawerHandle, roughness: 0.9 });
   const handleGeometry = createHandleGeometry();
 
-  const body = new Mesh(new RoundedBoxGeometry(width, height, depth, 3, 0.012), bodyMaterial);
+  const body = new Mesh(new RoundedBoxGeometry(width, height, depth, 6, 0.03), bodyMaterial);
   body.position.y = height / 2;
   body.castShadow = true;
   body.receiveShadow = true;
@@ -37,18 +38,19 @@ export const createDrawerUnit = () => {
 
   // Frentes de los cajones, un poco salientes respecto al cuerpo
   const frontHeight = (height - GAP * (DRAWER_COUNT + 1)) / DRAWER_COUNT;
-  const frontGeometry = new RoundedBoxGeometry(width - GAP * 2, frontHeight, 0.02, 2, 0.006);
+  const frontGeometry = new RoundedBoxGeometry(width - GAP * 3, frontHeight, 0.024, 5, 0.01);
 
   for (let index = 0; index < DRAWER_COUNT; index++) {
     const y = GAP + frontHeight / 2 + index * (frontHeight + GAP);
 
     const front = new Mesh(frontGeometry, frontMaterial);
-    front.position.set(0, y, depth / 2 + 0.006);
+    front.position.set(0, y, depth / 2 + 0.004);
     front.castShadow = true;
     front.receiveShadow = true;
 
     const handle = new Mesh(handleGeometry, handleMaterial);
-    handle.position.set(0, y + frontHeight / 2 - 0.004, depth / 2 + 0.0165);
+    // Algo por debajo del borde, en la parte plana del frente (el borde está redondeado)
+    handle.position.set(0, y + frontHeight / 2 - 0.012, depth / 2 + 0.0165);
 
     group.add(front, handle);
   }
