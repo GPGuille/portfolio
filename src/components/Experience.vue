@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from "vue";
-import { createExperience } from "../three";
-import { SIDE_BY_SIDE_MIN_WIDTH, type Stage } from "../three/framing";
+import type { createExperience } from "../three";
+import { SIDE_BY_SIDE_MIN_WIDTH, type Stage } from "../three/layout";
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let experience: ReturnType<typeof createExperience> | null = null;
+let isUnmounted = false;
 
 const bottoms = (rects: DOMRect[]) => Math.max(0, ...rects.map((rect) => rect.bottom));
 const rights = (rects: DOMRect[]) => Math.max(0, ...rects.map((rect) => rect.right));
@@ -26,11 +27,18 @@ const getStage = (width: number, height: number): Stage => {
   return { left: gutter, top: bottoms([...side, ...top]) + gutter, right: width - gutter, bottom: height - gutter };
 };
 
-onMounted(() => {
-  if (canvasRef.value) experience = createExperience(canvasRef.value, getStage);
+// three.js pesa más de 500 KB: se carga aparte, después de que la página ya muestre
+// el nombre y el menú, para que el texto aparezca al instante
+onMounted(async () => {
+  const { createExperience } = await import("../three");
+  if (isUnmounted || !canvasRef.value) return;
+  experience = createExperience(canvasRef.value, getStage);
 });
 
-onBeforeUnmount(() => experience?.dispose());
+onBeforeUnmount(() => {
+  isUnmounted = true;
+  experience?.dispose();
+});
 </script>
 
 <template>

@@ -30,11 +30,10 @@ Guillermo **no quiere que aparezca nada de David** en su web. La licencia de Dav
 | SCSS | Estilos; `mixins.scss` se inyecta en todos los `<style lang="scss">` |
 | Three.js | Escena 3D en un canvas fijo detrás del contenido |
 | vite-plugin-glsl | Importar shaders `.glsl` |
-| GSAP | Animaciones; su `ticker` es el reloj común (render 3D y scroll) |
-| Lenis | Scroll suave |
+| GSAP | Animaciones de la interfaz (etiqueta) |
 | Howler | Sonidos (aún sin usar) |
 | @fontsource | Fuentes locales: Urbanist (400/700/900) |
-| ProFont | Fuente de la etiqueta (negrita), en `src/assets/fonts/profont/` con su licencia MIT; descargada de tobiasjung.name/profont |
+| ProFont | Fuente de la etiqueta (negrita), en `public/fonts/profont/` como woff2 con su licencia MIT; descargada de tobiasjung.name/profont y precargada desde `index.html` |
 
 Los modelos 3D se harán en Blender y se exportarán a `.glb` (Vite ya los acepta como assets).
 
@@ -51,7 +50,6 @@ src/
   components/
     Experience.vue           canvas fijo de Three.js
     Banner.vue               etiqueta azul inclinada con animación
-  composables/useScroll.ts   Lenis movido por el ticker de GSAP
   features/home/
     Home.vue                 página principal
     components/Hero.vue      portada: "Guillermo / González" + "Full Stack Developer"
@@ -90,9 +88,16 @@ src/
 
 1. ~~Subir el proyecto a GitHub~~ → github.com/GPGuille/portfolio (público).
 2. ~~Barra de menú superior~~ (hecha, con panel "Próximamente" por sección).
-3. Escena 3D: su habitación con escritorio, ordenador y su avatar, con formas básicas en código y objetos clicables.
-4. Secciones: sobre mí, habilidades, proyectos y contacto.
-5. Publicar en Vercel con dominio propio.
+3. Escena 3D (en curso): hechos el escritorio y el tablón. Faltan monitor, teclado, ratón, alfombrilla, silla, estantería y avatar; después, objetos clicables.
+4. Secciones: sobre mí, skills, proyectos, certificaciones y contacto.
+5. Favicon e imagen para compartir el enlace (og:image).
+6. Publicar en Vercel con dominio propio.
+
+## Rendimiento (no romper)
+
+- La escena 3D se dibuja solo cuando algo cambia (`requestRender` en `src/three/index.ts`), no en bucle. Cualquier animación 3D futura debe pedir sus fotogramas mientras dure.
+- three.js se carga con `import()` dinámico desde `Experience.vue`, en un archivo aparte, después del texto. Lo que la web necesite de la escena sin cargar three.js va en `src/three/layout.ts`.
+- La web no tiene scroll: no hay librería de scroll suave.
 
 ## Comandos
 

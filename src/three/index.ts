@@ -9,8 +9,8 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
-import gsap from "gsap";
-import { collectFramePoints, fitCamera, type Stage } from "./framing";
+import { collectFramePoints, fitCamera } from "./framing";
+import type { Stage } from "./layout";
 import { palette } from "./palette";
 import { createRoom, WALL_Z } from "./room";
 
@@ -49,26 +49,37 @@ export const createExperience = (canvas: HTMLCanvasElement, getStage: (width: nu
   const camera = new PerspectiveCamera(35, 1, 0.1, 100);
   const framePoints = collectFramePoints(room, sun.position.clone().normalize(), WALL_Z);
 
+  // La escena está quieta: solo se dibuja cuando algo cambia (tamaño de ventana,
+  // y más adelante interacciones o animaciones), no 60 veces por segundo.
+  // Así no gasta batería ni enciende el ventilador
+  let frame = 0;
+  const requestRender = () => {
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      renderer.render(scene, camera);
+    });
+  };
+
   const resize = () => {
     const { innerWidth: width, innerHeight: height } = window;
     renderer.setSize(width, height, false);
     fitCamera(camera, framePoints, CAMERA_DIRECTION, getStage(width, height), width, height);
+    requestRender();
   };
-
-  const tick = () => renderer.render(scene, camera);
 
   resize();
   window.addEventListener("resize", resize);
   // Las fuentes cambian el tamaño del nombre al cargar: se vuelve a encuadrar
   document.fonts.ready.then(resize);
-  gsap.ticker.add(tick);
 
   return {
     scene,
     camera,
     resize,
+    requestRender,
     dispose: () => {
-      gsap.ticker.remove(tick);
+      cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
       scene.traverse((object) => {
         if (!(object instanceof Mesh)) return;

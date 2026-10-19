@@ -3,6 +3,7 @@ import type { SectionId } from "../composables/useSection";
 export type Locale = "es" | "en";
 
 type Messages = {
+  meta: { title: string; description: string };
   sections: Record<SectionId, string>;
   hero: { jobTitle: string };
   nav: { label: string; open: string; close: string; switchLanguage: string };
@@ -12,6 +13,10 @@ type Messages = {
 // Todos los textos de la web, en los dos idiomas
 export const messages: Record<Locale, Messages> = {
   es: {
+    meta: {
+      title: "Guillermo González · Full Stack Developer",
+      description: "Portfolio de Guillermo González Piqueras, desarrollador full stack.",
+    },
     sections: {
       about: "Sobre mí",
       skills: "Skills",
@@ -29,6 +34,10 @@ export const messages: Record<Locale, Messages> = {
     panel: { close: "Cerrar", comingSoon: "Próximamente" },
   },
   en: {
+    meta: {
+      title: "Guillermo González · Full Stack Developer",
+      description: "Portfolio of Guillermo González Piqueras, full stack developer.",
+    },
     sections: {
       about: "About me",
       skills: "Skills",

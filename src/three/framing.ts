@@ -1,10 +1,5 @@
 import { Box3, Object3D, PerspectiveCamera, Vector3 } from "three";
-
-// Zona de la pantalla (en píxeles) donde debe caber la habitación
-export type Stage = { left: number; top: number; right: number; bottom: number };
-
-// A partir de este ancho la habitación va a la derecha del nombre; por debajo, debajo de él
-export const SIDE_BY_SIDE_MIN_WIDTH = 840;
+import type { Stage } from "./layout";
 
 // Puntos que tienen que verse: las esquinas de cada mueble y dónde caen sus sombras
 // en el suelo (solo delante de la pared, que es donde el suelo existe)

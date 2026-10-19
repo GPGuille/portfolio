@@ -14,8 +14,12 @@ const readStoredLocale = (): Locale => {
 
 const locale = ref<Locale>(readStoredLocale());
 
+// Idioma, título de la pestaña y descripción siguen al idioma elegido
 watchEffect(() => {
+  const { meta } = messages[locale.value];
   document.documentElement.lang = locale.value;
+  document.title = meta.title;
+  document.querySelector('meta[name="description"]')?.setAttribute("content", meta.description);
   try {
     localStorage.setItem(STORAGE_KEY, locale.value);
   } catch {

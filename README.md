@@ -11,8 +11,7 @@ Portfolio interactivo en 3D.
 | SCSS | Estilos (con mixins de breakpoints en `src/assets/styles/mixins.scss`) |
 | Three.js | La escena 3D (`src/three`) |
 | vite-plugin-glsl | Importar shaders `.glsl` (`src/three/shaders`) |
-| GSAP | Animaciones y reloj común de la web |
-| Lenis | Scroll suave (`src/composables/useScroll.ts`) |
+| GSAP | Animaciones de la interfaz |
 | Howler | Sonidos |
 
 ## Comandos
@@ -30,7 +29,7 @@ Portfolio interactivo en 3D.
 src/
   assets/styles/     colores, fuentes, reset y mixins
   components/        piezas reutilizables (Banner, Experience)
-  composables/       lógica compartida (scroll)
+  composables/       estado compartido (idioma, sección abierta)
   features/home/     la página principal y sus secciones
   three/             la escena 3D
     shaders/         shaders GLSL

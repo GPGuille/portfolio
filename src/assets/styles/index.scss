@@ -1,10 +1,11 @@
 @use "./reset.scss";
 @use "./variables.scss";
 
-// ProFont (licencia MIT, ver ../fonts/profont/LICENSE), descargada de tobiasjung.name/profont
+// ProFont (licencia MIT, ver public/fonts/profont/LICENSE), descargada de tobiasjung.name/profont
+// y convertida a woff2. Vive en public/ para poder precargarla desde index.html
 @font-face {
   font-family: "ProFont";
-  src: url("../fonts/profont/ProFontWindows-Bold.ttf") format("truetype");
+  src: url("/fonts/profont/ProFontWindows-Bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -21,4 +22,10 @@ html {
 ::selection {
   background: var(--color-text);
   color: var(--color-white);
+}
+
+// Foco de teclado visible y coherente con el diseño (solo al navegar con teclado, no al hacer clic)
+:focus-visible {
+  outline: 3px solid var(--color-banner);
+  outline-offset: var(--space-1);
 }
