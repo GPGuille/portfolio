@@ -17,6 +17,14 @@ export const palette = {
   keycapAccent: "#9a7162",
   // Blanco ligeramente frío: compensa la luz cálida para que se lea blanco limpio
   mouse: "#e6eefc",
+  // Monitor estilo iMac en azul pastel (a juego con el azul de la etiqueta), marco blanco
+  // algo frío para compensar la luz cálida, y pantalla con un editor de código
+  monitorBody: "#9fb8dc",
+  monitorBezel: "#e8eefa",
+  monitorScreen: "#272a35",
+  monitorScreenPanel: "#30333f",
+  monitorScreenMuted: "#4a4e5e",
+  monitorScreenSyntax: ["#f4a7b9", "#f6d58e", "#a8d8b9", "#9cc3f0", "#c9b6f2"],
   drawerBody: "#5f6062",
   drawerFront: "#6a6b6d",
   drawerHandle: "#383836",

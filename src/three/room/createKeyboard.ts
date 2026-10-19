@@ -4,10 +4,11 @@ import { palette } from "../palette";
 
 // Unidad estándar de tecla (19,05 mm): todas las medidas del teclado salen de aquí
 const U = 0.01905;
-const KEY_GAP = 0.0015;
-const KEYCAP_HEIGHT = 0.009;
-const CASE_MARGIN = 0.009;
-const CASE_HEIGHT = 0.022;
+// Estilo juguete: teclas gorditas con más separación, carcasa gruesa y muy redondeada
+const KEY_GAP = 0.003;
+const KEYCAP_HEIGHT = 0.011;
+const CASE_MARGIN = 0.013;
+const CASE_HEIGHT = 0.028;
 // Las teclas quedan algo hundidas en la carcasa y asoman por encima del borde
 const KEYCAP_SINK = 0.004;
 // Inclinación: la parte de atrás queda más alta, como un teclado real
@@ -35,6 +36,9 @@ const LAYOUT_WIDTH = 18.25 * U;
 // Seis filas más medio hueco entre las teclas de función y el resto
 const LAYOUT_DEPTH = 6.5 * U;
 export const KEYBOARD_SIZE = { width: LAYOUT_WIDTH + CASE_MARGIN * 2, depth: LAYOUT_DEPTH + CASE_MARGIN * 2 };
+// Centro del bloque principal (letras, 15 unidades) respecto al centro del teclado:
+// queda a la izquierda porque a la derecha está el bloque de flechas (3,25 unidades)
+export const KEYBOARD_MAIN_BLOCK_OFFSET = -((18.25 - 15) / 2) * U;
 
 // Teclado mecánico TKL. El origen es el centro de la base del teclado
 export const createKeyboard = () => {
@@ -46,8 +50,8 @@ export const createKeyboard = () => {
   group.add(body);
 
   const keyboardCase = new Mesh(
-    new RoundedBoxGeometry(KEYBOARD_SIZE.width, CASE_HEIGHT, KEYBOARD_SIZE.depth, 4, 0.006),
-    new MeshStandardMaterial({ color: palette.keyboardCase, metalness: 0.55, roughness: 0.4 }),
+    new RoundedBoxGeometry(KEYBOARD_SIZE.width, CASE_HEIGHT, KEYBOARD_SIZE.depth, 6, 0.012),
+    new MeshStandardMaterial({ color: palette.keyboardCase, metalness: 0.25, roughness: 0.55 }),
   );
   keyboardCase.position.set(0, CASE_HEIGHT / 2, -KEYBOARD_SIZE.depth / 2);
   keyboardCase.castShadow = true;
@@ -55,14 +59,14 @@ export const createKeyboard = () => {
   body.add(keyboardCase);
 
   const materials: Record<KeyKind, MeshStandardMaterial> = {
-    alpha: new MeshStandardMaterial({ color: palette.keycapAlpha, roughness: 0.6 }),
-    modifier: new MeshStandardMaterial({ color: palette.keycapModifier, roughness: 0.6 }),
-    accent: new MeshStandardMaterial({ color: palette.keycapAccent, roughness: 0.6 }),
+    alpha: new MeshStandardMaterial({ color: palette.keycapAlpha, roughness: 0.7 }),
+    modifier: new MeshStandardMaterial({ color: palette.keycapModifier, roughness: 0.7 }),
+    accent: new MeshStandardMaterial({ color: palette.keycapAccent, roughness: 0.7 }),
   };
   const geometries = new Map<number, RoundedBoxGeometry>();
   const keycapGeometry = (units: number) => {
     if (!geometries.has(units)) {
-      geometries.set(units, new RoundedBoxGeometry(units * U - KEY_GAP, KEYCAP_HEIGHT, U - KEY_GAP, 2, 0.0022));
+      geometries.set(units, new RoundedBoxGeometry(units * U - KEY_GAP, KEYCAP_HEIGHT, U - KEY_GAP, 4, 0.0038));
     }
     return geometries.get(units)!;
   };

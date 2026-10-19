@@ -1,30 +1,19 @@
-import { ExtrudeGeometry, Mesh, MeshStandardMaterial, RepeatWrapping, Shape } from "three";
-import { roundedRect } from "../geometry/roundedRect";
+import { Mesh, MeshStandardMaterial, RepeatWrapping } from "three";
+import { createRoundedSlab } from "../geometry/createRoundedSlab";
 import { palette } from "../palette";
 import { createSpeckleTexture } from "../textures/createSpeckleTexture";
 
-// Alfombrilla de fieltro gris antracita, justa para teclado y ratón (80 × 32 cm, 4 mm),
-// con las esquinas redondeadas y el canto suavizado
-export const DESK_MAT_SIZE = { width: 0.8, depth: 0.32, thickness: 0.004 };
-
-const CORNER_RADIUS = 0.02;
-const EDGE = 0.0012;
+// Alfombrilla de fieltro gris antracita en estilo juguete: gruesa, con esquinas
+// muy redondeadas y el canto suave (86 × 36 cm, 8 mm)
+export const DESK_MAT_SIZE = { width: 0.86, depth: 0.36, thickness: 0.008 };
 
 export const createDeskMat = () => {
   const { width, depth, thickness } = DESK_MAT_SIZE;
 
-  const outline = roundedRect(new Shape(), width - EDGE * 2, depth - EDGE * 2, CORNER_RADIUS);
-  const geometry = new ExtrudeGeometry(outline, {
-    depth: thickness - EDGE * 2,
-    bevelEnabled: true,
-    bevelThickness: EDGE,
-    bevelSize: EDGE,
-    bevelSegments: 3,
-    curveSegments: 12,
-  });
-  // La forma se dibuja de pie: se tumba sobre la mesa con la cara superior arriba
+  const geometry = createRoundedSlab(width, depth, thickness, 0.035, 0.003);
+  // La placa se crea de pie: se tumba sobre la mesa
   geometry.rotateX(-Math.PI / 2);
-  geometry.translate(0, EDGE, 0);
+  geometry.translate(0, thickness / 2, 0);
 
   // Las coordenadas de textura de la forma van en metros: una repetición por metro
   const felt = createSpeckleTexture({ base: palette.deskMat, dark: palette.deskMatDark, light: palette.deskMatLight }, 11);
