@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Avatar from "../../../components/Avatar.vue";
 import Banner from "../../../components/Banner.vue";
 import { useI18n } from "../../../composables/useI18n";
 
@@ -14,6 +15,7 @@ const { t } = useI18n();
       </h1>
       <Banner class="hero-banner" data-stage="side" :copy="t.hero.jobTitle" />
     </div>
+    <Avatar class="hero-avatar" />
   </section>
 </template>
 
@@ -22,6 +24,7 @@ const { t } = useI18n();
   min-height: 100vh;
   min-height: 100svh;
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
   // Mismo margen arriba y a la izquierda. En móvil el nombre baja bajo la fila del menú
@@ -35,6 +38,12 @@ const { t } = useI18n();
   &-copy {
     position: relative;
     width: fit-content;
+  }
+
+  // Debajo del nombre, dejando sitio a la etiqueta inclinada
+  &-avatar {
+    margin-top: calc(var(--font-size-title) * 0.95);
+    margin-left: calc(var(--font-size-title) * 0.2);
   }
 
   &-title {

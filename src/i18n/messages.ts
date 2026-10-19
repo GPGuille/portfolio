@@ -8,6 +8,7 @@ type Messages = {
   hero: { jobTitle: string };
   nav: { label: string; open: string; close: string; switchLanguage: string };
   panel: { close: string; comingSoon: string };
+  avatar: { label: string };
 };
 
 // Todos los textos de la web, en los dos idiomas
@@ -32,6 +33,7 @@ export const messages: Record<Locale, Messages> = {
       switchLanguage: "Switch to English",
     },
     panel: { close: "Cerrar", comingSoon: "Próximamente" },
+    avatar: { label: "Guillermo saludando. Abrir Sobre mí" },
   },
   en: {
     meta: {
@@ -53,5 +55,6 @@ export const messages: Record<Locale, Messages> = {
       switchLanguage: "Cambiar a español",
     },
     panel: { close: "Close", comingSoon: "Coming soon" },
+    avatar: { label: "Guillermo waving. Open About me" },
   },
 };
