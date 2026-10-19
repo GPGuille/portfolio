@@ -31,6 +31,11 @@ export const createExperience = (canvas: HTMLCanvasElement, getStage: (width: nu
 
   // Luz suave y cálida: cielo claro arriba, rebote de madera abajo y un "sol" que da sombras
   scene.add(new HemisphereLight(palette.lightSky, palette.lightGround, 1.3));
+  // Relleno suave desde el lado de la cámara (sin sombras): aclara las caras en sombra
+  // (laterales de cajoneras, cantos) para que no se lean como bloques oscuros
+  const fill = new DirectionalLight(palette.lightSky, 0.55);
+  fill.position.set(3, 2, 4);
+  scene.add(fill);
   const sun = new DirectionalLight(palette.lightSun, 2.4);
   sun.position.set(-2, 5, 3);
   sun.castShadow = true;

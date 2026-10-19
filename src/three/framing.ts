@@ -3,14 +3,15 @@ import type { Stage } from "./layout";
 
 // Puntos que tienen que verse: las esquinas de cada mueble y dónde caen sus sombras
 // en el suelo (solo delante de la pared, que es donde el suelo existe) y, para lo colgado
-// (userData.isWallMounted), también en la pared
+// (userData.isWallMounted), también en la pared. Lo marcado con userData.bleeds (la alfombra)
+// no cuenta: puede salirse de la pantalla
 export const collectFramePoints = (root: Object3D, lightDirection: Vector3, wallZ: number) => {
   root.updateMatrixWorld(true);
   const points: Vector3[] = [];
   const box = new Box3();
 
   for (const child of root.children) {
-    if (child.userData.isShadowCatcher) continue;
+    if (child.userData.isShadowCatcher || child.userData.bleeds) continue;
     box.setFromObject(child);
     const visibleShadows: Vector3[] = [];
     const hiddenShadows: Vector3[] = [];

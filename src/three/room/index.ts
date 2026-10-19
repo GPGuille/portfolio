@@ -1,4 +1,5 @@
 import { Group } from "three";
+import { createChair } from "./createChair";
 import { createCorkboard, CORKBOARD_SIZE } from "./createCorkboard";
 import { createDeskMat, DESK_MAT_SIZE } from "./createDeskMat";
 import { createDeskTop, DESK_TOP_SIZE } from "./createDeskTop";
@@ -6,6 +7,7 @@ import { createDrawerUnit, DRAWER_UNIT_SIZE } from "./createDrawerUnit";
 import { createKeyboard, KEYBOARD_MAIN_BLOCK_OFFSET, KEYBOARD_SIZE } from "./createKeyboard";
 import { createMonitor, MONITOR_FOOT_DEPTH, MONITOR_HEIGHT } from "./createMonitor";
 import { createMouse, MOUSE_SIZE } from "./createMouse";
+import { createRug, RUG_SIZE } from "./createRug";
 import { createFloorShadowCatcher, createWallShadowCatcher } from "./createShadowCatcher";
 import { createShelves } from "./createShelves";
 
@@ -20,7 +22,7 @@ const DESK_KIT_SCALE = 1.2;
 const CORKBOARD_GAP = 0.15;
 
 // La habitación se monta por partes: escritorio (cajoneras, tablero, alfombrilla, monitor,
-// teclado y ratón), tablón a la izquierda y estantería a la derecha
+// teclado y ratón), alfombra, silla, tablón a la izquierda y estantería a la derecha
 export const createRoom = () => {
   const room = new Group();
 
@@ -71,6 +73,19 @@ export const createRoom = () => {
   mouse.position.set(mouseX, onMat, keyboard.position.z + 0.01);
   mouse.rotation.y = 0.12;
   room.add(mouse);
+
+  // Alfombra grande que abarca toda la zona de trabajo: entra bajo la mesa hasta cerca de
+  // la pared y sobresale por delante y por los lados, como en las escenas de estudio
+  const rug = createRug();
+  rug.position.set(0, 0, WALL_Z + 0.06 + RUG_SIZE.depth / 2);
+  room.add(rug);
+
+  // Silla vacía delante del teclado, algo separada de la mesa y girada unos 23° hacia la
+  // derecha (hacia la cámara): como si alguien se acabara de levantar
+  const chair = createChair();
+  chair.position.set(0.06, RUG_SIZE.thickness, DESK_TOP_SIZE.depth / 2 + 0.3);
+  chair.rotation.y = -0.4;
+  room.add(chair);
 
   // Tablón y estantería colgados simétricos respecto al monitor (que está en el centro),
   // con 28 cm de hueco entre los dos (la estantería sobresale 20 cm y en perspectiva

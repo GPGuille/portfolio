@@ -48,6 +48,16 @@ export const palette = {
   drawerBody: "#8c867e",
   drawerFront: "#969088",
   drawerHandle: "#5a554f",
+  // Silla tipo Herman Miller Setu: carcasa blanca (algo fría por la luz cálida),
+  // laterales y base gris perla
+  chairShell: "#eef2f8",
+  chairFrame: "#c9ccd2",
+  // Alfombra: base hueso con franjas anchas en el azul pastel del monitor y un filete fino en el
+  // azul de acento; borde de roble claro. Alegre pero dentro del sistema de color
+  rugField: "#efe8da",
+  rugBand: "#a9c1e3",
+  rugStripe: "#4e6ea8",
+  rugBorder: "#d9c39d",
   lightSky: "#fff6ea",
   lightGround: "#b89a7c",
   lightSun: "#fff0d9",
