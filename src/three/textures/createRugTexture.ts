@@ -1,41 +1,32 @@
 import { CanvasTexture, SRGBColorSpace } from "three";
+import { createRandom } from "./createRandom";
 
-type RugColors = { field: string; band: string; stripe: string; border: string };
+type RugColors = { dark: string; light: string };
 
-// Dibujo de la alfombra (en proporción a su tamaño): borde de roble y, dentro, franjas anchas
-// a lo largo alternando hueso y azul pastel, cada franja azul con un filete fino más oscuro
-export const createRugTexture = ({ field, band, stripe, border }: RugColors, aspect: number) => {
+// Damero de lana: cuadros alternos con un grano de tejido sutil (puntadas más claras y más
+// oscuras) para que se lea como alfombra y no como papel. columns × rows cuadros
+export const createRugTexture = ({ dark, light }: RugColors, columns: number, rows: number) => {
+  const random = createRandom(9);
+  const cell = 128;
   const canvas = document.createElement("canvas");
-  canvas.width = 2048;
-  canvas.height = Math.round(2048 / aspect);
+  canvas.width = columns * cell;
+  canvas.height = rows * cell;
   const context = canvas.getContext("2d")!;
-  const { width, height } = canvas;
-  const edge = height * 0.045;
 
-  context.fillStyle = border;
-  context.fillRect(0, 0, width, height);
-
-  const inner = { x: edge, y: edge, width: width - edge * 2, height: height - edge * 2 };
-  context.save();
-  context.beginPath();
-  context.roundRect(inner.x, inner.y, inner.width, inner.height, edge * 1.5);
-  context.clip();
-
-  context.fillStyle = field;
-  context.fillRect(inner.x, inner.y, inner.width, inner.height);
-
-  // Siete franjas a lo ancho de la alfombra: hueso / azul / hueso / azul / hueso / azul / hueso
-  const bands = 7;
-  const bandHeight = inner.height / bands;
-  for (let index = 1; index < bands; index += 2) {
-    const y = inner.y + index * bandHeight;
-    context.fillStyle = band;
-    context.fillRect(inner.x, y, inner.width, bandHeight);
-    context.fillStyle = stripe;
-    const line = bandHeight * 0.08;
-    context.fillRect(inner.x, y + bandHeight / 2 - line / 2, inner.width, line);
+  for (let row = 0; row < rows; row++) {
+    for (let column = 0; column < columns; column++) {
+      context.fillStyle = (row + column) % 2 === 0 ? dark : light;
+      context.fillRect(column * cell, row * cell, cell, cell);
+    }
   }
-  context.restore();
+
+  // Grano del tejido: trazos cortos en filas, como las puntadas de una alfombra de lana
+  for (let stitch = 0; stitch < canvas.width * canvas.height * 0.02; stitch++) {
+    context.fillStyle = random() > 0.5 ? "#ffffff" : "#000000";
+    context.globalAlpha = 0.03 + random() * 0.05;
+    context.fillRect(random() * canvas.width, random() * canvas.height, 2 + random() * 3, 1.5);
+  }
+  context.globalAlpha = 1;
 
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;

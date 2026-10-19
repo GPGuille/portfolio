@@ -52,12 +52,20 @@ export const palette = {
   // laterales y base gris perla
   chairShell: "#eef2f8",
   chairFrame: "#c9ccd2",
-  // Alfombra: base hueso con franjas anchas en el azul pastel del monitor y un filete fino en el
-  // azul de acento; borde de roble claro. Alegre pero dentro del sistema de color
-  rugField: "#efe8da",
-  rugBand: "#a9c1e3",
-  rugStripe: "#4e6ea8",
-  rugBorder: "#d9c39d",
+  // Alfombra en damero terracota y crema (inspirada en una de lana tejida): la terracota es cálida
+  // como el nogal y complementaria del azul, así que hace resaltar el monitor y la etiqueta
+  rugTerracotta: "#b8714a",
+  rugCream: "#efe3cb",
+  // Canto de la alfombra, de un solo color
+  rugBase: "#d9c7a6",
+  // Cama del gato: gris claro cálido como la UTSÅDD de IKEA
+  catBed: "#cfcac3",
+  catBedInner: "#bdb7af",
+  // Gato British Shorthair azul: gris azulado, nariz y almohadillas rosa grisáceo
+  cat: "#8c95a3",
+  catLight: "#a3abb7",
+  catNose: "#b98a8f",
+  catLine: "#3d4048",
   lightSky: "#fff6ea",
   lightGround: "#b89a7c",
   lightSun: "#fff0d9",

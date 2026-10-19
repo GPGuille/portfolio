@@ -7,6 +7,7 @@ import { createDrawerUnit, DRAWER_UNIT_SIZE } from "./createDrawerUnit";
 import { createKeyboard, KEYBOARD_MAIN_BLOCK_OFFSET, KEYBOARD_SIZE } from "./createKeyboard";
 import { createMonitor, MONITOR_FOOT_DEPTH, MONITOR_HEIGHT } from "./createMonitor";
 import { createMouse, MOUSE_SIZE } from "./createMouse";
+import { createCatBed, CAT_BED_SIZE } from "./createCatBed";
 import { createRug, RUG_SIZE } from "./createRug";
 import { createFloorShadowCatcher, createWallShadowCatcher } from "./createShadowCatcher";
 import { createShelves } from "./createShelves";
@@ -18,8 +19,9 @@ export const WALL_Z = -DESK_TOP_SIZE.depth / 2 - 0.005;
 // de la mesa (estilo juguete), manteniendo la proporción con el monitor
 const DESK_KIT_SCALE = 1.2;
 
-// Hueco entre lo alto del monitor y el borde inferior del tablón
-const CORKBOARD_GAP = 0.15;
+// Hueco entre lo alto del monitor y el borde inferior del tablón: justo, para que la escena
+// sea menos alta y la cámara pueda acercarse más
+const CORKBOARD_GAP = 0.07;
 
 // La habitación se monta por partes: escritorio (cajoneras, tablero, alfombrilla, monitor,
 // teclado y ratón), alfombra, silla, tablón a la izquierda y estantería a la derecha
@@ -74,11 +76,22 @@ export const createRoom = () => {
   mouse.rotation.y = 0.12;
   room.add(mouse);
 
-  // Alfombra grande que abarca toda la zona de trabajo: entra bajo la mesa hasta cerca de
-  // la pared y sobresale por delante y por los lados, como en las escenas de estudio
+  // Alfombra bajo toda la mesa (su borde de atrás a 6 cm de la pared) que termina pasada la silla;
+  // con una columna de más a cada lado de la mesa para que quepa la cama del gato a la derecha
   const rug = createRug();
   rug.position.set(0, 0, WALL_Z + 0.06 + RUG_SIZE.depth / 2);
   room.add(rug);
+
+  // Cama con el gato dormido a la derecha de la cajonera, sobre la alfombra, con su frente
+  // alineado con el borde delantero de la mesa y girada hacia la cámara
+  const catBed = createCatBed();
+  catBed.position.set(
+    DESK_TOP_SIZE.width / 2 + 0.06 + CAT_BED_SIZE.diameter / 2,
+    RUG_SIZE.thickness,
+    DESK_TOP_SIZE.depth / 2 - CAT_BED_SIZE.diameter / 2,
+  );
+  catBed.rotation.y = 0.5;
+  room.add(catBed);
 
   // Silla vacía delante del teclado, algo separada de la mesa y girada unos 23° hacia la
   // derecha (hacia la cámara): como si alguien se acabara de levantar
@@ -95,7 +108,7 @@ export const createRoom = () => {
   // Tablón colgado en la pared, a la izquierda
   const corkboard = createCorkboard();
   corkboard.userData.isWallMounted = true;
-  // Cuelga 15 cm por encima del monitor, que es lo más alto de la mesa
+  // Cuelga 7 cm por encima del monitor, que es lo más alto de la mesa
   const corkboardBottom = deskHeight + MONITOR_HEIGHT + CORKBOARD_GAP;
   corkboard.position.set(-wallItemsOffset, corkboardBottom + CORKBOARD_SIZE.height / 2, WALL_Z + CORKBOARD_SIZE.depth / 2);
   room.add(corkboard);

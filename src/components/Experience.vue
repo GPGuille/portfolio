@@ -15,6 +15,7 @@ const rectsOf = (zone: "side" | "top") =>
 // Hueco libre para la habitación, con el mismo margen que el texto.
 // Los elementos marcados con data-stage="side" (nombre y etiqueta) y data-stage="top" (menú)
 // son los que la habitación no puede pisar
+// Por abajo la escena llega hasta medio margen del borde: la alfombra sigue fuera de la pantalla
 const getStage = (width: number, height: number): Stage => {
   // El mismo margen que usa el CSS (--gutter), ya resuelto a píxeles por el navegador
   const gutter = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--gutter")) || 16;
@@ -22,9 +23,9 @@ const getStage = (width: number, height: number): Stage => {
   const top = rectsOf("top");
 
   if (width >= SIDE_BY_SIDE_MIN_WIDTH) {
-    return { left: rights(side) + gutter, top: bottoms(top), right: width - gutter, bottom: height - gutter };
+    return { left: rights(side) + gutter, top: bottoms(top), right: width - gutter, bottom: height - gutter / 2 };
   }
-  return { left: gutter, top: bottoms([...side, ...top]) + gutter, right: width - gutter, bottom: height - gutter };
+  return { left: gutter, top: bottoms([...side, ...top]) + gutter, right: width - gutter, bottom: height - gutter / 2 };
 };
 
 // three.js pesa más de 500 KB: se carga aparte, después de que la página ya muestre
