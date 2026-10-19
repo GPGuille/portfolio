@@ -2,7 +2,8 @@ import { Box3, Object3D, PerspectiveCamera, Vector3 } from "three";
 import type { Stage } from "./layout";
 
 // Puntos que tienen que verse: las esquinas de cada mueble y dónde caen sus sombras
-// en el suelo (solo delante de la pared, que es donde el suelo existe)
+// en el suelo (solo delante de la pared, que es donde el suelo existe) y, para lo colgado
+// (userData.isWallMounted), también en la pared
 export const collectFramePoints = (root: Object3D, lightDirection: Vector3, wallZ: number) => {
   root.updateMatrixWorld(true);
   const points: Vector3[] = [];
@@ -11,24 +12,31 @@ export const collectFramePoints = (root: Object3D, lightDirection: Vector3, wall
   for (const child of root.children) {
     if (child.userData.isShadowCatcher) continue;
     box.setFromObject(child);
+    const visibleShadows: Vector3[] = [];
+    const hiddenShadows: Vector3[] = [];
+
     for (const x of [box.min.x, box.max.x]) {
       for (const y of [box.min.y, box.max.y]) {
         for (const z of [box.min.z, box.max.z]) {
           const corner = new Vector3(x, y, z);
           points.push(corner);
+          // Lo colgado en la pared también proyecta su sombra sobre ella
+          if (child.userData.isWallMounted && z > wallZ) {
+            points.push(corner.clone().addScaledVector(lightDirection, -(z - wallZ) / lightDirection.z));
+          }
           if (y <= 0) continue;
           const shadow = corner.clone().addScaledVector(lightDirection, -y / lightDirection.y);
-          if (shadow.z >= wallZ) {
-            points.push(shadow);
-            continue;
-          }
-          // La sombra pasaría por detrás de la pared: se recorta en la línea donde la pared
-          // toca el suelo. Los bordes de sombra que llegan ahí van en profundidad (misma x),
-          // así que el punto de corte conserva la x de la sombra
-          points.push(new Vector3(shadow.x, 0, wallZ));
+          (shadow.z >= wallZ ? visibleShadows : hiddenShadows).push(shadow);
         }
       }
     }
+
+    // Si ninguna esquina hace sombra delante de la pared (lo colgado en alto), su sombra en
+    // el suelo cae entera detrás y no se ve: no cuenta. Si parte sí se ve, la sombra se recorta
+    // en la línea donde la pared toca el suelo; los bordes que llegan ahí van en profundidad
+    // (misma x), así que el punto de corte conserva la x de la sombra
+    if (visibleShadows.length === 0) continue;
+    points.push(...visibleShadows, ...hiddenShadows.map((shadow) => new Vector3(shadow.x, 0, wallZ)));
   }
 
   return points;

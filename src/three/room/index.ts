@@ -7,6 +7,7 @@ import { createKeyboard, KEYBOARD_MAIN_BLOCK_OFFSET, KEYBOARD_SIZE } from "./cre
 import { createMonitor, MONITOR_FOOT_DEPTH, MONITOR_HEIGHT } from "./createMonitor";
 import { createMouse, MOUSE_SIZE } from "./createMouse";
 import { createFloorShadowCatcher, createWallShadowCatcher } from "./createShadowCatcher";
+import { createShelves } from "./createShelves";
 
 // La pared (invisible) queda a 5 mm del borde trasero del escritorio
 export const WALL_Z = -DESK_TOP_SIZE.depth / 2 - 0.005;
@@ -18,7 +19,8 @@ const DESK_KIT_SCALE = 1.2;
 // Hueco entre lo alto del monitor y el borde inferior del tablón
 const CORKBOARD_GAP = 0.15;
 
-// La habitación se monta por partes: escritorio (cajoneras, tablero, alfombrilla, monitor, teclado y ratón) y tablón
+// La habitación se monta por partes: escritorio (cajoneras, tablero, alfombrilla, monitor,
+// teclado y ratón), tablón a la izquierda y estantería a la derecha
 export const createRoom = () => {
   const room = new Group();
 
@@ -70,18 +72,40 @@ export const createRoom = () => {
   mouse.rotation.y = 0.12;
   room.add(mouse);
 
-  // Tablón colgado en la pared, a la izquierda, dejando el centro libre para el monitor
+  // Tablón y estantería colgados simétricos respecto al monitor (que está en el centro),
+  // con 28 cm de hueco entre los dos (la estantería sobresale 20 cm y en perspectiva
+  // un hueco menor parece que se tocan)
+  const wallItemsOffset = 0.64;
+
+  // Tablón colgado en la pared, a la izquierda
   const corkboard = createCorkboard();
+  corkboard.userData.isWallMounted = true;
   // Cuelga 15 cm por encima del monitor, que es lo más alto de la mesa
   const corkboardBottom = deskHeight + MONITOR_HEIGHT + CORKBOARD_GAP;
-  corkboard.position.set(-0.5, corkboardBottom + CORKBOARD_SIZE.height / 2, WALL_Z + CORKBOARD_SIZE.depth / 2);
+  corkboard.position.set(-wallItemsOffset, corkboardBottom + CORKBOARD_SIZE.height / 2, WALL_Z + CORKBOARD_SIZE.depth / 2);
   room.add(corkboard);
 
-  // Pared invisible solo detrás del tablón, algo desplazada hacia donde cae su sombra
-  // (derecha y abajo) y sin bajar hasta la mesa
-  const corkboardWall = createWallShadowCatcher(CORKBOARD_SIZE.width + 0.3, CORKBOARD_SIZE.height + 0.2);
-  corkboardWall.position.set(corkboard.position.x + 0.1, corkboard.position.y - 0.04, WALL_Z);
+  // Paredes invisibles detrás del tablón y de la estantería: cada una desde el centro hacia
+  // su lado, sin solaparse (donde se solapan la sombra se duplica). Empiezan a la altura
+  // de lo alto del monitor para no recoger su sombra
+  const wallTop = corkboardBottom + CORKBOARD_SIZE.height + 0.15;
+  const wallBottom = deskHeight + MONITOR_HEIGHT;
+  const corkboardWall = createWallShadowCatcher(1.6, wallTop - wallBottom);
+  corkboardWall.position.set(-0.8, (wallTop + wallBottom) / 2, WALL_Z);
   room.add(corkboardWall);
+
+  // Estantería de cubos en la pared a la derecha: mismo contorno y altura que el tablón
+  const shelves = createShelves();
+  shelves.userData.isWallMounted = true;
+  shelves.position.set(wallItemsOffset, corkboardBottom, WALL_Z);
+  room.add(shelves);
+
+  // Su sombra cae más lejos hacia abajo y a la derecha (sobresale 20 cm de la pared): baja
+  // 20 cm más que la otra; lo que quede detrás del monitor no se ve
+  const shelvesWallBottom = wallBottom - 0.2;
+  const shelvesWall = createWallShadowCatcher(1.9, wallTop - shelvesWallBottom);
+  shelvesWall.position.set(0.95, (wallTop + shelvesWallBottom) / 2, WALL_Z);
+  room.add(shelvesWall);
 
   return room;
 };
