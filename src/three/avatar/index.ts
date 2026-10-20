@@ -7,6 +7,7 @@ import {
   DirectionalLight,
   HemisphereLight,
   LoopOnce,
+  LoopRepeat,
   Material,
   Mesh,
   MeshBasicMaterial,
@@ -21,13 +22,17 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import avatarUrl from "../../assets/models/avatar.glb?url";
 import contactBlocksUrl from "../../assets/models/contact-blocks.glb?url";
+import gsap from "gsap";
 import { palette } from "../palette";
 
 // Animaciones del modelo (Hyper3D/Rodin). El reposo es el primer fotograma de HappyIdle, quieto,
 // con una respiración suave añadida en código; Salute es el saludo (al entrar y al pasar el ratón)
 // y el resto son gestos que hace de vez en cuando. SadIdle no se usa: transmite tristeza
 const CLIPS = { rest: "HumanHappyIdle", greet: "HumanSalute" };
-const GESTURES = ["HumanDwarfIdle", "HumanArmStretching", "HumanPointingForward", "HumanSalute"];
+const GESTURES = ["HumanDwarfIdle", "HumanArmStretching", "HumanPointingForward", "HumanSalute", "sit"];
+// Sentarse en los bloques: desaparece con un "pop", aparece sentado encima un rato y vuelve.
+// El trasero de la pose sentada queda a 0,255 del suelo y 0,12 por detrás de su origen (avatar = 1)
+const SIT = { clip: "HumanSitting", seatHeight: 0.255, seatDepth: 0.12, duration: 7, pop: 0.28 };
 const GESTURE_PAUSE = { min: 15, max: 25 };
 // Fundido lento entre el reposo y los gestos, para que la vuelta sea suave
 const FADE = 0.9;
@@ -66,10 +71,11 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
 
   // El modelo se escala a 1 unidad de alto con los pies en el suelo; la cámara lo encuadra
   // de frente con aire a los lados para el saludo
-  // La cámara se desplaza a la izquierda para dejar sitio a los bloques de contacto
+  // La cámara se desplaza a la izquierda para dejar sitio a los bloques de contacto, y se aleja lo
+  // justo para que el avatar sentado encima de ellos no se corte por la izquierda
   const camera = new PerspectiveCamera(22, 0.9, 0.1, 20);
-  camera.position.set(-0.12, 0.62, 3.1);
-  camera.lookAt(-0.12, 0.5, 0);
+  camera.position.set(-0.22, 0.62, 3.35);
+  camera.lookAt(-0.22, 0.5, 0);
 
   // Bloques de contacto (correo, LinkedIn, GitHub) apilados a la izquierda del avatar, generados con
   // IA. Más adelante serán clicables. Con su propia sombra de contacto
@@ -88,6 +94,7 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
   let mixer: AnimationMixer | null = null;
   const actions = new Map<string, AnimationAction>();
   let current: AnimationAction | null = null;
+  let holder: Group | null = null;
   const clock = new Clock();
   let frame = 0;
   let disposed = false;
@@ -132,8 +139,44 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
       if (document.hidden || current) return scheduleGesture();
       const options = GESTURES.filter((name) => name !== lastGesture);
       lastGesture = options[Math.floor(Math.random() * options.length)]!;
-      playClip(lastGesture);
+      if (lastGesture === "sit") sitOnBlocks();
+      else playClip(lastGesture);
     }, wait * 1000);
+  };
+
+  // Se encoge, aparece sentado en los bloques, se queda un rato y vuelve a su sitio de pie
+  let sitTimeline: gsap.core.Timeline | null = null;
+  const sitOnBlocks = () => {
+    const sit = actions.get(SIT.clip);
+    const rest = actions.get(CLIPS.rest);
+    if (!sit || !rest || !holder || current) return;
+    current = sit;
+    const swap = (seated: boolean) => {
+      if (!holder) return;
+      if (seated) {
+        rest.stop();
+        sit.reset().play();
+        holder.position.set(BLOCKS.x, BLOCKS.height - SIT.seatHeight, SIT.seatDepth);
+        holder.rotation.y = BLOCKS.rotation;
+      } else {
+        sit.stop();
+        rest.reset().play();
+        rest.timeScale = 0;
+        holder.position.set(0, 0, 0);
+        holder.rotation.y = 0;
+      }
+      // La sombra de sus pies solo tiene sentido de pie
+      contactShadow.visible = !seated;
+      mixer?.update(0);
+    };
+    sitTimeline = gsap
+      .timeline({ onComplete: () => { current = null; scheduleGesture(); } })
+      .to(holder.scale, { x: 0.001, y: 0.001, z: 0.001, duration: SIT.pop, ease: "back.in(2)" })
+      .call(() => swap(true))
+      .to(holder.scale, { x: 1, y: 1, z: 1, duration: SIT.pop * 1.4, ease: "back.out(2)" })
+      .to(holder.scale, { x: 0.001, y: 0.001, z: 0.001, duration: SIT.pop, ease: "back.in(2)" }, `+=${SIT.duration}`)
+      .call(() => swap(false))
+      .to(holder.scale, { x: 1, y: 1, z: 1, duration: SIT.pop * 1.4, ease: "back.out(2)" });
   };
 
   const greet = () => {
@@ -194,12 +237,12 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
     blocks.scale.setScalar(BLOCKS.height / box.getSize(new Vector3()).y);
     box.setFromObject(blocks);
     const center = box.getCenter(new Vector3());
-    const holder = new Group();
+    const blocksHolder = new Group();
     blocks.position.set(-center.x, -box.min.y, -center.z);
-    holder.add(blocks);
-    holder.position.x = BLOCKS.x;
-    holder.rotation.y = BLOCKS.rotation;
-    scene.add(holder);
+    blocksHolder.add(blocks);
+    blocksHolder.position.x = BLOCKS.x;
+    blocksHolder.rotation.y = BLOCKS.rotation;
+    scene.add(blocksHolder);
     if (!frame) render();
   });
 
@@ -217,12 +260,18 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
     box.setFromObject(model);
     const center = box.getCenter(new Vector3());
     model.position.set(-center.x, -box.min.y, -center.z);
-    scene.add(model);
+    // El avatar va dentro de un soporte para poder moverlo entero (al sentarse en los bloques)
+    holder = new Group();
+    holder.add(model);
+    scene.add(holder);
 
     mixer = new AnimationMixer(model);
     for (const clip of gltf.animations) {
       const action = mixer.clipAction(clip);
-      if (clip.name !== CLIPS.rest) {
+      if (clip.name === SIT.clip) {
+        // Sentado es una pose en bucle mientras dura (no dispara el "finished" de los gestos)
+        action.setLoop(LoopRepeat, Infinity);
+      } else if (clip.name !== CLIPS.rest) {
         action.setLoop(LoopOnce, 1);
         action.clampWhenFinished = true;
       }
@@ -271,6 +320,7 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
     dispose: () => {
       disposed = true;
       window.clearTimeout(gestureTimer);
+      sitTimeline?.kill();
       pause();
       observer.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
