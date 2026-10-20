@@ -35,6 +35,7 @@ export const createPostIts = (surfaceZ: number, onLoad: () => void) => {
           if (object.material.name === "Glossy red plastic") {
             object.material.color.set(palette.postItPins[index % palette.postItPins.length]!);
           }
+
         });
 
         // Texto pegado al papel, en la parte de abajo (arriba está la chincheta)

@@ -1,10 +1,11 @@
-// Skills que aparecen en los post-its del tablón: una categoría por post-it.
-// Edita esta lista para cambiar lo que se ve (máximo 4 elementos por post-it para que se lea bien)
-export type SkillGroup = { title: string; items: string[] };
+// Categorías de skills: cada una es un post-it del tablón (icono + título). Los elementos se
+// mostrarán al abrir la sección Skills. Edita esta lista para cambiar lo que se ve
+export type SkillIcon = "code" | "server" | "database" | "wrench";
+export type SkillGroup = { title: string; icon: SkillIcon; items: string[] };
 
 export const skillGroups: SkillGroup[] = [
-  { title: "Frontend", items: ["Vue", "TypeScript", "HTML · CSS"] },
-  { title: "Backend", items: ["Java", "Python"] },
-  { title: "Database", items: ["SQL"] },
-  { title: "Tools", items: ["Docker", "Git"] },
+  { title: "Frontend", icon: "code", items: ["Vue", "TypeScript", "HTML · CSS"] },
+  { title: "Backend", icon: "server", items: ["Java", "Python"] },
+  { title: "Database", icon: "database", items: ["SQL"] },
+  { title: "Tools", icon: "wrench", items: ["Docker", "Git"] },
 ];
