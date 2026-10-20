@@ -5,6 +5,7 @@ import wallShelfUrl from "../../assets/models/wall-shelf.glb?url";
 import { createChair } from "./createChair";
 import { createDeskMat, DESK_MAT_SIZE } from "./createDeskMat";
 import { createDeskProps, createShelfDuck } from "./createDeskProps";
+import { createPostIts } from "./createPostIts";
 import { createDeskTop, DESK_TOP_SIZE } from "./createDeskTop";
 import { createDrawerUnit, DRAWER_UNIT_SIZE } from "./createDrawerUnit";
 import { createKeyboard, KEYBOARD_MAIN_BLOCK_OFFSET, KEYBOARD_SIZE } from "./createKeyboard";
@@ -136,6 +137,8 @@ export const createRoom = (hooks: SceneHooks) => {
   // El tablón se ajusta al mismo alto que la estantería (apenas cambia su proporción)
   const corkboard = createWallProp(corkboardUrl, { width: CORKBOARD_WIDTH, height: SIDE_HEIGHT, depth: 0.05 }, hooksLoad, true);
   corkboard.position.set(shelfX - SHELF_WIDTH / 2 - WALL_SPACING - CORKBOARD_WIDTH / 2, wallTopLine - SIDE_HEIGHT, WALL_Z);
+  // Post-its con las skills, sobre el corcho (su cara está a 3,3 cm de la pared)
+  corkboard.add(createPostIts(0.033, hooksLoad));
   room.add(corkboard);
 
   const shelfHeight = SHELF_WIDTH * 0.42;

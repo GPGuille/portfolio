@@ -55,9 +55,10 @@ onBeforeUnmount(() => {
 
   &-canvas {
     display: block;
-    // Más ancho que el muñeco para que la mano no se salga al saludar
-    width: clamp(230px, 21vw, 340px);
-    aspect-ratio: 2 / 3;
+    // Cuadrado: el avatar a la derecha y los bloques de contacto a su izquierda, con aire para
+    // que la mano no se salga al saludar
+    width: clamp(310px, 28vw, 460px);
+    aspect-ratio: 9 / 10;
   }
 }
 </style>

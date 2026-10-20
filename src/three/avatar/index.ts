@@ -1,5 +1,6 @@
 import {
   AnimationMixer,
+  Group,
   Box3,
   CircleGeometry,
   Clock,
@@ -19,6 +20,7 @@ import type { AnimationAction, Euler, Object3D } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import avatarUrl from "../../assets/models/avatar.glb?url";
+import contactBlocksUrl from "../../assets/models/contact-blocks.glb?url";
 import { palette } from "../palette";
 
 // Animaciones del modelo (Hyper3D/Rodin). El reposo es el primer fotograma de HappyIdle, quieto,
@@ -29,6 +31,8 @@ const GESTURES = ["HumanDwarfIdle", "HumanArmStretching", "HumanPointingForward"
 const GESTURE_PAUSE = { min: 15, max: 25 };
 // Fundido lento entre el reposo y los gestos, para que la vuelta sea suave
 const FADE = 0.9;
+// Bloques de contacto: alto de la pila (el avatar mide 1), posición y giro hacia la cámara
+const BLOCKS = { height: 0.48, x: -0.47, rotation: 0.35 };
 // Respiración: ciclo de unos 4 s; el pecho se abre y los hombros suben un poco
 const BREATH = { speed: 1.6, chest: 0.025, shoulders: 0.03 };
 
@@ -62,10 +66,17 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
 
   // El modelo se escala a 1 unidad de alto con los pies en el suelo; la cámara lo encuadra
   // de frente con aire a los lados para el saludo
-  const camera = new PerspectiveCamera(22, 1, 0.1, 20);
-  camera.position.set(0, 0.62, 3.1);
-  camera.lookAt(0, 0.5, 0);
+  // La cámara se desplaza a la izquierda para dejar sitio a los bloques de contacto
+  const camera = new PerspectiveCamera(22, 0.9, 0.1, 20);
+  camera.position.set(-0.12, 0.62, 3.1);
+  camera.lookAt(-0.12, 0.5, 0);
 
+  // Bloques de contacto (correo, LinkedIn, GitHub) apilados a la izquierda del avatar, generados con
+  // IA. Más adelante serán clicables. Con su propia sombra de contacto
+  const blocksShadow = contactShadow.clone();
+  blocksShadow.scale.set(0.6, 0.35, 1);
+  blocksShadow.position.x = BLOCKS.x;
+  scene.add(blocksShadow);
   const resize = () => {
     const { clientWidth: width, clientHeight: height } = canvas;
     if (!width || !height) return;
@@ -176,6 +187,22 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
 
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
+  loader.load(contactBlocksUrl, (gltf) => {
+    if (disposed) return;
+    const blocks = gltf.scene;
+    const box = new Box3().setFromObject(blocks);
+    blocks.scale.setScalar(BLOCKS.height / box.getSize(new Vector3()).y);
+    box.setFromObject(blocks);
+    const center = box.getCenter(new Vector3());
+    const holder = new Group();
+    blocks.position.set(-center.x, -box.min.y, -center.z);
+    holder.add(blocks);
+    holder.position.x = BLOCKS.x;
+    holder.rotation.y = BLOCKS.rotation;
+    scene.add(holder);
+    if (!frame) render();
+  });
+
   loader.load(avatarUrl, (gltf) => {
     if (disposed) return;
     const model = gltf.scene;

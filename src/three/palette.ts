@@ -42,6 +42,10 @@ export const palette = {
   rugBase: "#d9c7a6",
   // Cama del gato: azul marino, en la familia del azul de acento, para que el gato gris resalte
   catBed: "#4a6aa3",
+  // Post-its del tablón: papel en los pastel de la escena y chinchetas de colores
+  postItPapers: ["#f6d58e", "#f4b6c2", "#b9dcc3", "#bcd4f2"],
+  postItPins: ["#c8453a", "#263c70", "#e0a23b", "#4f8a5b"],
+  postItInk: "#2d2a24",
   lightSky: "#fff6ea",
   lightGround: "#b89a7c",
   lightSun: "#fff0d9",
