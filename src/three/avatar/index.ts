@@ -15,15 +15,21 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
-import type { AnimationAction } from "three";
+import type { AnimationAction, Euler, Object3D } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import avatarUrl from "../../assets/models/avatar.glb?url";
 import { palette } from "../palette";
 
-// Nombres de las animaciones que trae el modelo (exportado desde Hyper3D/Rodin)
-const CLIPS = { idle: "HumanHappyIdle", greet: "HumanSalute" };
-const FADE = 0.4;
+// Animaciones del modelo (Hyper3D/Rodin). El reposo es el primer fotograma de HappyIdle, quieto,
+// con una respiración suave añadida en código; Salute es el saludo (al entrar y al pasar el ratón)
+// y el resto son gestos que hace de vez en cuando. SadIdle no se usa: transmite tristeza
+const CLIPS = { rest: "HumanHappyIdle", greet: "HumanSalute" };
+const GESTURES = ["HumanDwarfIdle", "HumanArmStretching", "HumanPointingForward", "HumanSalute"];
+const GESTURE_PAUSE = { min: 15, max: 25 };
+const FADE = 0.5;
+// Respiración: ciclo de unos 4 s; el pecho se abre y los hombros suben un poco
+const BREATH = { speed: 1.6, chest: 0.025, shoulders: 0.03 };
 
 // Avatar 3D de Guillermo (modelo con esqueleto y animaciones) en su propio canvas, en la columna
 // del nombre. En reposo se anima en bucle mientras la pestaña está visible; saluda al entrar y
@@ -78,7 +84,9 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
 
   const loop = () => {
     frame = requestAnimationFrame(loop);
-    mixer?.update(clock.getDelta());
+    const delta = Math.min(clock.getDelta(), 0.1);
+    mixer?.update(delta);
+    breathe(delta);
     render();
   };
   const play = () => {
@@ -92,18 +100,60 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
   };
   const onVisibility = () => (document.hidden ? pause() : play());
 
-  const fadeTo = (name: string, instant = false) => {
+  // Cada gesto sustituye a la pose de reposo con un fundido cruzado, y al acabar vuelve a ella
+  // (si se mezclaran a la vez, three.js las promediaría y el gesto quedaría a medias)
+  const playClip = (name: string) => {
     const next = actions.get(name);
-    if (!next || next === current) return;
+    const rest = actions.get(CLIPS.rest);
+    if (!next || current) return;
     next.reset().play();
-    if (!instant) next.fadeIn(FADE);
-    current?.fadeOut(FADE);
+    if (rest) next.crossFadeFrom(rest, FADE, false);
     current = next;
   };
 
+  let gestureTimer = 0;
+  let lastGesture = "";
+  const scheduleGesture = () => {
+    window.clearTimeout(gestureTimer);
+    const wait = GESTURE_PAUSE.min + Math.random() * (GESTURE_PAUSE.max - GESTURE_PAUSE.min);
+    gestureTimer = window.setTimeout(() => {
+      if (document.hidden || current) return scheduleGesture();
+      const options = GESTURES.filter((name) => name !== lastGesture);
+      lastGesture = options[Math.floor(Math.random() * options.length)]!;
+      playClip(lastGesture);
+    }, wait * 1000);
+  };
+
   const greet = () => {
-    if (reducedMotion || current === actions.get(CLIPS.greet)) return;
-    fadeTo(CLIPS.greet);
+    if (reducedMotion || current) return;
+    lastGesture = CLIPS.greet;
+    playClip(CLIPS.greet);
+  };
+
+  // Respiración sobre la pose de reposo. Se calcula siempre desde la pose guardada (no sumando
+  // al valor actual) porque la pose congelada no se reescribe en cada fotograma: sumar haría que
+  // el giro se acumulara. Durante un gesto no respira (manda la animación)
+  type BreathBone = { bone: Object3D; base: Euler; axis: "x" | "z"; amount: number };
+  const breathBones: BreathBone[] = [];
+  let breathTime = 0;
+  const breathe = (delta: number) => {
+    breathTime += delta;
+    if (current) return;
+    const wave = Math.sin(breathTime * BREATH.speed);
+    for (const { bone, base, axis, amount } of breathBones) {
+      bone.rotation.copy(base);
+      bone.rotation[axis] += wave * amount;
+    }
+  };
+  const captureBreathBones = (model: Object3D) => {
+    breathBones.length = 0;
+    const add = (name: string, axis: "x" | "z", amount: number) => {
+      const bone = model.getObjectByName(name);
+      if (bone) breathBones.push({ bone, base: bone.rotation.clone(), axis, amount });
+    };
+    add("Spine2", "x", -BREATH.chest);
+    add("LeftShoulder", "z", BREATH.shoulders);
+    add("RightShoulder", "z", -BREATH.shoulders);
   };
 
   const loader = new GLTFLoader();
@@ -125,23 +175,44 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
     scene.add(model);
 
     mixer = new AnimationMixer(model);
-    for (const clip of gltf.animations) actions.set(clip.name, mixer.clipAction(clip));
-    const greetAction = actions.get(CLIPS.greet);
-    if (greetAction) {
-      greetAction.setLoop(LoopOnce, 1);
-      greetAction.clampWhenFinished = true;
+    for (const clip of gltf.animations) {
+      const action = mixer.clipAction(clip);
+      if (clip.name !== CLIPS.rest) {
+        action.setLoop(LoopOnce, 1);
+        action.clampWhenFinished = true;
+      }
+      actions.set(clip.name, action);
     }
-    // Al terminar el saludo vuelve al reposo
-    mixer.addEventListener("finished", () => fadeTo(CLIPS.idle));
+    // Pose de reposo: el primer fotograma de HappyIdle, congelado
+    const rest = actions.get(CLIPS.rest);
+    rest?.play();
+    if (rest) rest.timeScale = 0;
 
-    // El reposo entra sin fundido para que el primer fotograma ya muestre la pose natural
-    // (sin él se vería la pose en "A" del modelado)
-    fadeTo(CLIPS.idle, true);
+    // Al terminar un gesto se funde de vuelta al reposo y se programa el siguiente
+    mixer.addEventListener("finished", ({ action }) => {
+      const restAction = actions.get(CLIPS.rest);
+      if (restAction) {
+        restAction.reset().play();
+        restAction.timeScale = 0;
+        restAction.crossFadeFrom(action, FADE, false);
+      }
+      window.setTimeout(() => {
+        action.stop();
+        if (current === action) current = null;
+        // Vuelve exactamente a la pose de reposo antes de seguir respirando
+        mixer?.update(0);
+      }, FADE * 1000);
+      scheduleGesture();
+    });
+
     mixer.update(0);
+    captureBreathBones(model);
     render();
     play();
-    // Saluda al entrar, cuando ya se ha visto la página un momento
-    window.setTimeout(greet, 900);
+    if (!reducedMotion) {
+      // Saluda al entrar, cuando ya se ha visto la página un momento
+      window.setTimeout(greet, 900);
+    }
   });
 
   const observer = new ResizeObserver(() => {
@@ -156,6 +227,7 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
     greet,
     dispose: () => {
       disposed = true;
+      window.clearTimeout(gestureTimer);
       pause();
       observer.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);

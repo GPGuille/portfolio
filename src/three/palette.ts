@@ -58,18 +58,8 @@ export const palette = {
   rugCream: "#efe3cb",
   // Canto de la alfombra, de un solo color
   rugBase: "#d9c7a6",
-  // Cama del gato: gris claro cálido como la UTSÅDD de IKEA
-  catBed: "#cfcac3",
-  catBedDark: "#bfb9b1",
-  catBedLight: "#ddd8d1",
-  catBedInner: "#bdb7af",
-  // Gato British Shorthair azul: gris azulado, nariz y almohadillas rosa grisáceo
-  cat: "#8c95a3",
-  catDark: "#78808d",
-  catLight: "#a3abb7",
-  catLighter: "#b8bfca",
-  catNose: "#b98a8f",
-  catLine: "#3d4048",
+  // Cama del gato: azul marino, en la familia del azul de acento, para que el gato gris resalte
+  catBed: "#4a6aa3",
   lightSky: "#fff6ea",
   lightGround: "#b89a7c",
   lightSun: "#fff0d9",

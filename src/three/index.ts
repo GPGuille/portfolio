@@ -26,7 +26,9 @@ export const createExperience = (canvas: HTMLCanvasElement, getStage: (width: nu
   renderer.shadowMap.type = PCFSoftShadowMap;
 
   const scene = new Scene();
-  const room = createRoom();
+  // Los modelos cargados aparte (gato, cama) piden un nuevo dibujado al llegar, y pueden
+  // registrar animaciones (definidas más abajo; solo se llaman después de crear la escena)
+  const room = createRoom({ requestRender: () => requestRender(), animate: (animation) => animate(animation) });
   scene.add(room);
 
   // Luz suave y cálida: cielo claro arriba, rebote de madera abajo y un "sol" que da sombras
@@ -57,13 +59,37 @@ export const createExperience = (canvas: HTMLCanvasElement, getStage: (width: nu
   // La escena está quieta: solo se dibuja cuando algo cambia (tamaño de ventana,
   // y más adelante interacciones o animaciones), no 60 veces por segundo.
   // Así no gasta batería ni enciende el ventilador
+  // Las animaciones (el gato, más adelante los objetos clicables) se registran aquí y la escena
+  // se dibuja en bucle solo mientras alguna esté en marcha: cada una devuelve false al terminar
+  // Mientras anima se limita a 30 fotogramas por segundo: suficiente para un movimiento suave
+  // y la mitad de trabajo para la tarjeta gráfica (el navegador ya para el bucle con la pestaña oculta)
+  const FRAME_TIME = 1000 / 30;
   let frame = 0;
+  const animations = new Set<(delta: number) => boolean>();
+  let lastTime = 0;
+  const draw = (time: number) => {
+    frame = 0;
+    if (animations.size && lastTime && time - lastTime < FRAME_TIME - 1) {
+      frame = requestAnimationFrame(draw);
+      return;
+    }
+    const delta = lastTime ? Math.min((time - lastTime) / 1000, 0.1) : 0;
+    for (const animation of animations) if (!animation(delta)) animations.delete(animation);
+    renderer.render(scene, camera);
+    if (animations.size) {
+      lastTime = time;
+      frame = requestAnimationFrame(draw);
+    } else {
+      lastTime = 0;
+    }
+  };
   const requestRender = () => {
     if (frame) return;
-    frame = requestAnimationFrame(() => {
-      frame = 0;
-      renderer.render(scene, camera);
-    });
+    frame = requestAnimationFrame(draw);
+  };
+  const animate = (animation: (delta: number) => boolean) => {
+    animations.add(animation);
+    requestRender();
   };
 
   const resize = () => {
@@ -85,6 +111,8 @@ export const createExperience = (canvas: HTMLCanvasElement, getStage: (width: nu
     requestRender,
     dispose: () => {
       cancelAnimationFrame(frame);
+      animations.clear();
+      room.userData.dispose?.();
       window.removeEventListener("resize", resize);
       scene.traverse((object) => {
         if (!(object instanceof Mesh)) return;

@@ -25,7 +25,11 @@ const CORKBOARD_GAP = 0.07;
 
 // La habitación se monta por partes: escritorio (cajoneras, tablero, alfombrilla, monitor,
 // teclado y ratón), alfombra, silla, tablón a la izquierda y estantería a la derecha
-export const createRoom = () => {
+// Lo que la habitación necesita de la escena: volver a dibujar cuando llega un modelo cargado
+// aparte, y registrar animaciones que se dibujan en bucle hasta que terminan (devuelven false)
+export type SceneHooks = { requestRender: () => void; animate: (animation: (delta: number) => boolean) => void };
+
+export const createRoom = (hooks: SceneHooks) => {
   const room = new Group();
 
   room.add(createFloorShadowCatcher(WALL_Z));
@@ -84,7 +88,8 @@ export const createRoom = () => {
 
   // Cama con el gato dormido a la derecha de la cajonera, sobre la alfombra, con su frente
   // alineado con el borde delantero de la mesa y girada hacia la cámara
-  const catBed = createCatBed();
+  const catBed = createCatBed(hooks);
+  room.userData.dispose = catBed.userData.dispose;
   catBed.position.set(
     DESK_TOP_SIZE.width / 2 + 0.06 + CAT_BED_SIZE.diameter / 2,
     RUG_SIZE.thickness,
