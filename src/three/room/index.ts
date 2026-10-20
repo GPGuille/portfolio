@@ -113,9 +113,10 @@ export const createRoom = (hooks: SceneHooks) => {
 
   // Silla vacía delante del teclado, algo separada de la mesa y girada unos 23° hacia la
   // derecha (hacia la cámara): como si alguien se acabara de levantar
-  const chair = createChair();
+  const chair = createChair(() => hooks.requestRender());
   chair.position.set(0.06, RUG_SIZE.thickness, DESK_TOP_SIZE.depth / 2 + 0.3);
-  chair.rotation.y = -0.4;
+  // El modelo mira hacia +Z: se gira media vuelta para que mire a la mesa, algo girada a la derecha
+  chair.rotation.y = Math.PI - 0.4;
   room.add(chair);
 
   // Pared: tablón (Skills) a la izquierda, baldas con planta, libros y figurita de gato en el

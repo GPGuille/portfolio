@@ -28,10 +28,11 @@ export const palette = {
   drawerBody: "#8c867e",
   drawerFront: "#969088",
   drawerHandle: "#5a554f",
-  // Silla tipo Herman Miller Setu: carcasa blanca (algo fría por la luz cálida),
-  // laterales y base gris perla
-  chairShell: "#eef2f8",
-  chairFrame: "#c9ccd2",
+  // Silla: blanco roto (algo frío por la luz cálida) en estructura y malla, mecanismo gris claro
+  chairFrame: "#e9edf2",
+  chairMesh: "#dfe3e8",
+  chairMechanism: "#b4b8be",
+  chairWheels: "#7d8187",
   // Alfombra en damero terracota y crema (inspirada en una de lana tejida): la terracota es cálida
   // como el nogal y complementaria del azul, así que hace resaltar el monitor y la etiqueta
   rugTerracotta: "#b8714a",
