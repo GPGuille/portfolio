@@ -5,17 +5,11 @@ export const palette = {
   deskTop: "#6b4a32",
   deskTopGrainDark: "#3f2818",
   deskTopGrainLight: "#94694a",
-  // Grafito cálido, en sintonía con las cajoneras
-  deskMat: "#4a4541",
-  deskMatDark: "#3f3a37",
-  deskMatLight: "#57514c",
-  // Teclado: carcasa de aluminio champán, teclas crema y beige, Enter y Esc marrones
+  // Teclado: carcasa champán, teclas crema y beige, acento terracota suave
   keyboardCase: "#a8977f",
   keycapAlpha: "#efe6d4",
   keycapModifier: "#d8bfa8",
-  keycapAccent: "#9a7162",
-  // Blanco ligeramente frío: compensa la luz cálida para que se lea blanco limpio
-  mouse: "#e6eefc",
+  keycapAccent: "#c98a64",
   // Pantalla del monitor: fondo oscuro, barra de ventana y texto claro
   screenBackground: "#232631",
   screenBar: "#2e3240",

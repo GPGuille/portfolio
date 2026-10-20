@@ -57,7 +57,8 @@ onBeforeUnmount(() => {
     display: block;
     // Cuadrado: el avatar a la derecha y los bloques de contacto a su izquierda, con aire para
     // que la mano no se salga al saludar
-    width: clamp(310px, 28vw, 460px);
+    // Nunca más alto que el hueco bajo el nombre: si no, la página tendría scroll
+    width: min(clamp(310px, 28vw, 460px), calc((100svh - 22rem) * 0.9));
     aspect-ratio: 9 / 10;
   }
 }

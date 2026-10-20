@@ -3,14 +3,12 @@ import certificateShelfUrl from "../../assets/models/certificate-shelf.glb?url";
 import corkboardUrl from "../../assets/models/corkboard.glb?url";
 import wallShelfUrl from "../../assets/models/wall-shelf.glb?url";
 import { createChair } from "./createChair";
-import { createDeskMat, DESK_MAT_SIZE } from "./createDeskMat";
+import { createDeskKit, DESK_KIT_SIZE } from "./createDeskKit";
 import { createDeskProps, createShelfDuck } from "./createDeskProps";
 import { createPostIts } from "./createPostIts";
 import { createDeskTop, DESK_TOP_SIZE } from "./createDeskTop";
 import { createDrawerUnit, DRAWER_UNIT_SIZE } from "./createDrawerUnit";
-import { createKeyboard, KEYBOARD_MAIN_BLOCK_OFFSET, KEYBOARD_SIZE } from "./createKeyboard";
 import { createMonitor, MONITOR_HEIGHT } from "./createMonitor";
-import { createMouse, MOUSE_SIZE } from "./createMouse";
 import { createCatBed, CAT_BED_SIZE } from "./createCatBed";
 import { createRug, RUG_SIZE } from "./createRug";
 import { createFloorShadowCatcher, createWallShadowCatcher } from "./createShadowCatcher";
@@ -19,9 +17,6 @@ import { createWallProp } from "./createWallProp";
 // La pared (invisible) queda a 5 mm del borde trasero del escritorio
 export const WALL_Z = -DESK_TOP_SIZE.depth / 2 - 0.005;
 
-// Teclado, ratón y alfombrilla, algo más grandes que en la realidad como todo el equipo
-// de la mesa (estilo juguete), manteniendo la proporción con el monitor
-const DESK_KIT_SCALE = 1.2;
 
 // Pared: hueco sobre el monitor, alto de los objetos colgados, anchos y separación entre ellos
 const WALL_GAP = 0.07;
@@ -65,13 +60,11 @@ export const createRoom = (hooks: SceneHooks) => {
   deskTop.position.set(0, deskHeight - DESK_TOP_SIZE.thickness / 2, deskZ);
   room.add(deskTop);
 
-  // Alfombrilla centrada, a 8 cm del borde delantero de la mesa
-  const kit = DESK_KIT_SCALE;
+  // Alfombrilla, teclado y ratón en un solo modelo de IA, a 8 cm del borde delantero de la mesa
   const matFront = DESK_TOP_SIZE.depth / 2 - 0.08;
-  const mat = createDeskMat();
-  mat.scale.setScalar(kit);
-  mat.position.set(0, deskHeight, matFront - (DESK_MAT_SIZE.depth * kit) / 2);
-  room.add(mat);
+  const deskKit = createDeskKit(() => hooks.requestRender());
+  deskKit.position.set(0, deskHeight, matFront - DESK_KIT_SIZE.depth / 2);
+  room.add(deskKit);
 
   // Objetos pequeños a los lados de la alfombrilla: libreta, bolígrafos y taza
   const deskProps = createDeskProps(() => hooks.requestRender());
@@ -84,21 +77,6 @@ export const createRoom = (hooks: SceneHooks) => {
   monitor.position.set(0, deskHeight, -DESK_TOP_SIZE.depth / 2 + 0.03);
   room.add(monitor);
 
-  // Teclado a 7 cm del borde delantero de la alfombrilla, con la zona de letras
-  // justo debajo del centro de la pantalla
-  const onMat = deskHeight + DESK_MAT_SIZE.thickness * kit;
-  const keyboard = createKeyboard();
-  keyboard.scale.setScalar(kit);
-  keyboard.position.set(-KEYBOARD_MAIN_BLOCK_OFFSET * kit, onMat, matFront - 0.07 - (KEYBOARD_SIZE.depth * kit) / 2);
-  room.add(keyboard);
-
-  // Ratón a 5,5 cm a la derecha del teclado, ligeramente girado hacia dentro como al usarlo
-  const mouse = createMouse();
-  mouse.scale.setScalar(kit);
-  const mouseX = keyboard.position.x + ((KEYBOARD_SIZE.width + MOUSE_SIZE.width) / 2) * kit + 0.055;
-  mouse.position.set(mouseX, onMat, keyboard.position.z + 0.01);
-  mouse.rotation.y = 0.12;
-  room.add(mouse);
 
   // Alfombra bajo toda la mesa (su borde de atrás a 6 cm de la pared) que termina pasada la silla;
   // con una columna de más a cada lado de la mesa para que quepa la cama del gato a la derecha

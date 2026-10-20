@@ -11,6 +11,15 @@
   font-display: swap;
 }
 
+// La web es una sola pantalla sin scroll: se bloquea también el "rebote" elástico del trackpad
+// y del móvil, que movía el texto y el avatar sobre la escena (que está fija)
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 html {
   background: var(--color-background);
   color: var(--color-text);
