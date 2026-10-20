@@ -27,7 +27,8 @@ import { palette } from "../palette";
 const CLIPS = { rest: "HumanHappyIdle", greet: "HumanSalute" };
 const GESTURES = ["HumanDwarfIdle", "HumanArmStretching", "HumanPointingForward", "HumanSalute"];
 const GESTURE_PAUSE = { min: 15, max: 25 };
-const FADE = 0.5;
+// Fundido lento entre el reposo y los gestos, para que la vuelta sea suave
+const FADE = 0.9;
 // Respiración: ciclo de unos 4 s; el pecho se abre y los hombros suben un poco
 const BREATH = { speed: 1.6, chest: 0.025, shoulders: 0.03 };
 
@@ -132,17 +133,27 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
 
   // Respiración sobre la pose de reposo. Se calcula siempre desde la pose guardada (no sumando
   // al valor actual) porque la pose congelada no se reescribe en cada fotograma: sumar haría que
-  // el giro se acumulara. Durante un gesto no respira (manda la animación)
+  // el giro se acumulara
   type BreathBone = { bone: Object3D; base: Euler; axis: "x" | "z"; amount: number };
+  // La pose de reposo (primer fotograma de HappyIdle) mira algo hacia arriba: se baja la cabeza
+  const HEAD_DOWN = { neck: 0.12, head: 0.16 };
   const breathBones: BreathBone[] = [];
   let breathTime = 0;
+  // La corrección se mezcla según el peso del reposo: durante un gesto (peso 0) manda la
+  // animación, y en los fundidos de entrada y salida pasa poco a poco, sin saltos de cabeza
   const breathe = (delta: number) => {
     breathTime += delta;
-    if (current) return;
+    const weight = actions.get(CLIPS.rest)?.getEffectiveWeight() ?? 1;
+    if (weight <= 0) return;
     const wave = Math.sin(breathTime * BREATH.speed);
     for (const { bone, base, axis, amount } of breathBones) {
-      bone.rotation.copy(base);
-      bone.rotation[axis] += wave * amount;
+      const target = { x: base.x, y: base.y, z: base.z };
+      target[axis] += wave * amount;
+      bone.rotation.set(
+        bone.rotation.x + (target.x - bone.rotation.x) * weight,
+        bone.rotation.y + (target.y - bone.rotation.y) * weight,
+        bone.rotation.z + (target.z - bone.rotation.z) * weight,
+      );
     }
   };
   const captureBreathBones = (model: Object3D) => {
@@ -152,6 +163,13 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
       if (bone) breathBones.push({ bone, base: bone.rotation.clone(), axis, amount });
     };
     add("Spine2", "x", -BREATH.chest);
+    // Cuello y cabeza no respiran (cantidad 0); solo se corrige su pose para mirar al frente
+    add("Neck", "x", 0);
+    add("Head", "x", 0);
+    for (const entry of breathBones) {
+      if (entry.bone.name === "Neck") entry.base.x += HEAD_DOWN.neck;
+      if (entry.bone.name === "Head") entry.base.x += HEAD_DOWN.head;
+    }
     add("LeftShoulder", "z", BREATH.shoulders);
     add("RightShoulder", "z", -BREATH.shoulders);
   };
@@ -199,8 +217,6 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
       window.setTimeout(() => {
         action.stop();
         if (current === action) current = null;
-        // Vuelve exactamente a la pose de reposo antes de seguir respirando
-        mixer?.update(0);
       }, FADE * 1000);
       scheduleGesture();
     });

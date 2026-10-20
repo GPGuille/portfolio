@@ -5,12 +5,6 @@ export const palette = {
   deskTop: "#6b4a32",
   deskTopGrainDark: "#3f2818",
   deskTopGrainLight: "#94694a",
-  // Madera clara (roble tostado): marco del tablón y estantería. Más tostada que el fondo
-  // crema para que sus bordes se recorten bien
-  corkboardFrame: "#d9c39d",
-  cork: "#ab8862",
-  corkDark: "#967453",
-  corkLight: "#bc9a73",
   // Grafito cálido, en sintonía con las cajoneras
   deskMat: "#4a4541",
   deskMatDark: "#3f3a37",
@@ -22,27 +16,13 @@ export const palette = {
   keycapAccent: "#9a7162",
   // Blanco ligeramente frío: compensa la luz cálida para que se lea blanco limpio
   mouse: "#e6eefc",
-  // Monitor estilo iMac en azul pastel (a juego con el azul de la etiqueta), marco blanco
-  // algo frío para compensar la luz cálida, y pantalla con un editor de código
-  monitorBody: "#9fb8dc",
-  monitorBezel: "#e8eefa",
-  monitorScreen: "#272a35",
-  monitorScreenPanel: "#30333f",
-  monitorScreenMuted: "#4a4e5e",
-  monitorScreenSyntax: ["#f4a7b9", "#f6d58e", "#a8d8b9", "#9cc3f0", "#c9b6f2"],
-  // Estantería de cubos: mismo roble claro que el marco del tablón (fondo algo más oscuro para
-  // dar profundidad); títulos enmarcados, libros pastel y una planta en maceta blanca
-  shelf: "#d9c39d",
-  shelfBack: "#c4ab84",
-  plantPot: "#f1ece4",
-  plantLeaves: "#8fbf72",
-  plantLeavesDark: "#76a85c",
-  // Marcos de los títulos en nogal: repiten la madera de la mesa
-  certificateFrame: "#6b4a32",
-  certificatePaper: "#fbf8f1",
-  certificateInk: "#6f675c",
-  certificateSeal: "#d9a441",
-  books: ["#9cc3f0", "#f4a7b9", "#f6d58e", "#a8d8b9"],
+  // Pantalla del monitor: fondo oscuro, barra de ventana y texto claro
+  screenBackground: "#232631",
+  screenBar: "#2e3240",
+  screenText: "#f4f1ea",
+  screenMuted: "#8a90a3",
+  screenAccent: "#9cc3f0",
+  screenDots: ["#f4a7b9", "#f6d58e", "#a8d8b9"],
   // Gris piedra cálido: más claro que el original para que las cajoneras no pesen tanto
   // y no tiren la mirada hacia abajo, lejos del monitor
   drawerBody: "#8c867e",

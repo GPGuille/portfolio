@@ -9,6 +9,7 @@ type Messages = {
   nav: { label: string; open: string; close: string; switchLanguage: string };
   panel: { close: string; comingSoon: string };
   avatar: { label: string };
+  screen: { hint: string };
 };
 
 // Todos los textos de la web, en los dos idiomas
@@ -34,6 +35,7 @@ export const messages: Record<Locale, Messages> = {
     },
     panel: { close: "Cerrar", comingSoon: "Próximamente" },
     avatar: { label: "Guillermo saludando. Abrir Sobre mí" },
+    screen: { hint: "Haz clic para verlos" },
   },
   en: {
     meta: {
@@ -56,5 +58,6 @@ export const messages: Record<Locale, Messages> = {
     },
     panel: { close: "Close", comingSoon: "Coming soon" },
     avatar: { label: "Guillermo waving. Open About me" },
+    screen: { hint: "Click to see them" },
   },
 };

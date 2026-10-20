@@ -1,91 +1,58 @@
-import { Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, ShapeGeometry, Shape, Vector3 } from "three";
-import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { createRoundedSlab } from "../geometry/createRoundedSlab";
-import { roundedRect } from "../geometry/roundedRect";
-import { palette } from "../palette";
-import { createCodeScreenTexture } from "../textures/createCodeScreenTexture";
+import { Box3, BoxGeometry, Group, Mesh, MeshBasicMaterial, PlaneGeometry, Vector3 } from "three";
+import monitorUrl from "../../assets/models/monitor.glb?url";
+import { loadModel } from "../models/loadModel";
+import { createProjectsScreenTexture } from "../textures/createProjectsScreenTexture";
 
-// iMac de 24" como referencia, en estilo juguete: cuerpo grueso con esquinas muy
-// redondeadas, marco blanco gordito, barbilla de color y pie robusto.
-// Las medidas son las del diseño base; el monitor entero se escala con MONITOR_SCALE
-const BODY = { width: 0.63, height: 0.44, depth: 0.034, corner: 0.03 };
-const CHIN = 0.085;
-const BEZEL = 0.022;
-const FOOT = { width: 0.15, depth: 0.17, thickness: 0.016 };
-const PLATE = { width: 0.15, thickness: 0.016 };
-const BODY_BOTTOM = 0.09;
+// Monitor generado con IA (Hyper3D) a 82 cm de ancho. Su pantalla se tapa con una propia dibujada
+// en código ("Proyectos"), que se puede cambiar o animar sin tocar el modelo. Origen: centro del
+// borde trasero del pie, en la mesa
+const WIDTH = 0.82;
+// Proporciones del modelo: 0,60 × 0,456 × 0,154 m
+export const MONITOR_HEIGHT = WIDTH * (0.456 / 0.6);
+export const MONITOR_DEPTH = WIDTH * (0.154 / 0.6);
 
-// Origen del monitor: centro del pie apoyado en la mesa
-const BODY_CENTER_Z = 0.045;
-const BODY_FRONT_Z = BODY_CENTER_Z + BODY.depth / 2;
-const STAND_BOTTOM = new Vector3(0, FOOT.thickness, -FOOT.depth / 2 + 0.03);
-const STAND_TOP = new Vector3(0, BODY_BOTTOM + BODY.height * 0.35, BODY_CENTER_Z - BODY.depth / 2 - PLATE.thickness / 2 + 0.004);
-
-const WHITE_PANEL = { width: BODY.width - 0.012, height: BODY.height - CHIN };
-const SCREEN = { width: WHITE_PANEL.width - BEZEL * 2, height: WHITE_PANEL.height - BEZEL * 2 };
-
-// Grande porque será clicable (Proyectos), pero en proporción con el teclado y el ratón
-// (que van a 1,2): monitor de 82 cm de ancho con pantalla de 75 cm
-export const MONITOR_SCALE = 1.3;
-export const MONITOR_FOOT_DEPTH = FOOT.depth * MONITOR_SCALE;
-export const MONITOR_HEIGHT = (BODY_BOTTOM + BODY.height) * MONITOR_SCALE;
-// Centro de la pantalla respecto al origen del monitor (para encuadres y para Proyectos)
-export const MONITOR_SCREEN_CENTER = new Vector3(0, BODY_BOTTOM + CHIN + WHITE_PANEL.height / 2, BODY_FRONT_Z).multiplyScalar(
-  MONITOR_SCALE,
-);
-
-const roundedPlane = (width: number, height: number, radius: number) =>
-  new ShapeGeometry(roundedRect(new Shape(), width, height, radius), 16);
-
-export const createMonitor = () => {
+export const createMonitor = (onLoad: () => void) => {
   const group = new Group();
-  const panelCenterY = BODY_BOTTOM + CHIN + WHITE_PANEL.height / 2;
-  const shell = new MeshStandardMaterial({ color: palette.monitorBody, roughness: 0.6 });
 
-  const foot = new Mesh(new RoundedBoxGeometry(FOOT.width, FOOT.thickness, FOOT.depth, 5, 0.007), shell);
-  foot.position.y = FOOT.thickness / 2;
-  foot.castShadow = true;
-  foot.receiveShadow = true;
+  // Caja invisible con la medida final, para que el encuadre cuente con el monitor desde el principio
+  const bounds = new Mesh(new BoxGeometry(WIDTH, MONITOR_HEIGHT, MONITOR_DEPTH), new MeshBasicMaterial({ visible: false }));
+  bounds.position.set(0, MONITOR_HEIGHT / 2, MONITOR_DEPTH / 2);
+  group.add(bounds);
 
-  // Placa del pie: de la parte trasera de la base hasta la espalda del cuerpo
-  const rise = new Vector3().subVectors(STAND_TOP, STAND_BOTTOM);
-  const plate = new Mesh(new RoundedBoxGeometry(PLATE.width, rise.length(), PLATE.thickness, 5, 0.007), shell);
-  plate.position.addVectors(STAND_BOTTOM, STAND_TOP).multiplyScalar(0.5);
-  plate.rotation.x = Math.atan2(rise.z, rise.y);
-  plate.castShadow = true;
+  loadModel(monitorUrl, WIDTH, "x")
+    .then(({ model }) => {
+      const box = new Box3().setFromObject(model);
+      model.position.z -= box.min.z;
+      model.updateMatrixWorld(true);
 
-  const body = new Mesh(createRoundedSlab(BODY.width, BODY.height, BODY.depth, BODY.corner, 0.008), shell);
-  body.position.set(0, BODY_BOTTOM + BODY.height / 2, BODY_CENTER_Z);
-  body.castShadow = true;
-  body.receiveShadow = true;
+      // La pantalla original y los pilotos de ventana se sustituyen por la pantalla propia,
+      // un plano justo delante del cristal
+      let screenBox: Box3 | null = null;
+      model.traverse((object) => {
+        if (!(object instanceof Mesh)) return;
+        // three.js cambia los espacios de los nombres por guiones bajos al cargar
+        const name = object.name.replace(/_/g, " ");
+        if (name.startsWith("Recessed screen")) screenBox = new Box3().setFromObject(object);
+        if (name.startsWith("Status light")) object.visible = false;
+      });
+      if (screenBox) {
+        const size = (screenBox as Box3).getSize(new Vector3());
+        const center = (screenBox as Box3).getCenter(new Vector3());
+        const screen = new Mesh(
+          new PlaneGeometry(size.x, size.y),
+          new MeshBasicMaterial({ map: createProjectsScreenTexture(size.x / size.y), toneMapped: false }),
+        );
+        screen.position.set(center.x, center.y, (screenBox as Box3).max.z + 0.002);
+        screen.name = "projects-screen";
+        group.add(screen);
+      }
 
-  // Frontal blanco sobre la barbilla de color, y dentro la pantalla con el editor de código.
-  // La pantalla no recibe luces: brilla por sí misma, como una pantalla encendida
-  const whitePanel = new Mesh(
-    roundedPlane(WHITE_PANEL.width, WHITE_PANEL.height, BODY.corner - 0.006),
-    new MeshStandardMaterial({ color: palette.monitorBezel, roughness: 0.5 }),
-  );
-  whitePanel.position.set(0, panelCenterY, BODY_FRONT_Z + 0.0005);
+      group.add(model);
+      onLoad();
+    })
+    .catch(() => {
+      // Sin modelo (fallo de red) la mesa queda sin monitor; el resto de la escena sigue igual
+    });
 
-  const screen = new Mesh(
-    roundedPlane(SCREEN.width, SCREEN.height, 0.012),
-    new MeshBasicMaterial({
-      map: createCodeScreenTexture({
-        background: palette.monitorScreen,
-        panel: palette.monitorScreenPanel,
-        muted: palette.monitorScreenMuted,
-        syntax: palette.monitorScreenSyntax,
-      }),
-    }),
-  );
-  // Las coordenadas de la forma van en metros: se pasan a 0–1 para que la textura ocupe la pantalla
-  const uv = screen.geometry.attributes.uv!;
-  for (let index = 0; index < uv.count; index++) {
-    uv.setXY(index, uv.getX(index) / SCREEN.width + 0.5, uv.getY(index) / SCREEN.height + 0.5);
-  }
-  screen.position.set(0, panelCenterY, BODY_FRONT_Z + 0.001);
-
-  group.add(foot, plate, body, whitePanel, screen);
-  group.scale.setScalar(MONITOR_SCALE);
   return group;
 };
