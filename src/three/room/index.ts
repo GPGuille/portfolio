@@ -4,6 +4,7 @@ import corkboardUrl from "../../assets/models/corkboard.glb?url";
 import wallShelfUrl from "../../assets/models/wall-shelf.glb?url";
 import { createChair } from "./createChair";
 import { createDeskMat, DESK_MAT_SIZE } from "./createDeskMat";
+import { createDeskProps, createShelfDuck } from "./createDeskProps";
 import { createDeskTop, DESK_TOP_SIZE } from "./createDeskTop";
 import { createDrawerUnit, DRAWER_UNIT_SIZE } from "./createDrawerUnit";
 import { createKeyboard, KEYBOARD_MAIN_BLOCK_OFFSET, KEYBOARD_SIZE } from "./createKeyboard";
@@ -71,6 +72,11 @@ export const createRoom = (hooks: SceneHooks) => {
   mat.position.set(0, deskHeight, matFront - (DESK_MAT_SIZE.depth * kit) / 2);
   room.add(mat);
 
+  // Objetos pequeños a los lados de la alfombrilla: libreta, bolígrafos y taza
+  const deskProps = createDeskProps(() => hooks.requestRender());
+  deskProps.position.y = deskHeight;
+  room.add(deskProps);
+
   // Monitor centrado, con el pie a 3 cm del borde trasero de la mesa
   // (su borde delantero queda a unos 3,5 cm de la alfombrilla)
   const monitor = createMonitor(() => hooks.requestRender());
@@ -137,6 +143,7 @@ export const createRoom = (hooks: SceneHooks) => {
   // Justo encima de la pantalla, centrada sobre ella
   const monitorTop = deskHeight + MONITOR_HEIGHT;
   wallShelf.position.set(shelfX, monitorTop + 0.1, WALL_Z);
+  wallShelf.add(createShelfDuck(SHELF_WIDTH, hooksLoad));
   room.add(wallShelf);
 
   const certificates = createWallProp(certificateShelfUrl, { width: SIDE_WIDTH, height: SIDE_HEIGHT, depth: 0.42 }, hooksLoad);

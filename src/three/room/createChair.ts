@@ -4,7 +4,7 @@ import { loadModel } from "../models/loadModel";
 import { palette } from "../palette";
 
 // Colores propios por material del modelo: estructura y malla en blanco roto (como las Herman
-// Miller blancas), mecanismo en gris claro y ruedas en gris medio, para que no se confunda con
+// Miller blancas), mecanismo y pistón en negro grisáceo y ruedas en gris medio, para que no se confunda con
 // las cajoneras
 const COLORS: Record<string, string> = {
   "Warm gray polymer": palette.chairFrame,
