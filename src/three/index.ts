@@ -12,8 +12,12 @@ import {
   WebGLRenderer,
 } from "three";
 import gsap from "gsap";
+import { watch } from "vue";
 import { setHoverTarget } from "../composables/useHoverLabel";
+import { useSection, type SectionId } from "../composables/useSection";
+import { useSectionWindow } from "../composables/useSectionWindow";
 import { collectFramePoints, fitCamera } from "./framing";
+import { createFlyToWindow } from "./interaction/createFlyToWindow";
 import { createHoverPicker, type Clickable } from "./interaction/createHoverPicker";
 import { createOutline } from "./interaction/createOutline";
 import { modelsSettled } from "./models/loadModel";
@@ -72,6 +76,8 @@ export const createExperience = (
   scene.add(sun);
 
   const camera = new PerspectiveCamera(35, 1, 0.1, 100);
+  // En la escena para que se dibuje lo que cuelga de ella (el tablón cuando vuela a su ventana)
+  scene.add(camera);
   const outline = createOutline(renderer, scene, camera);
   const framePoints = collectFramePoints(room, sun.position.clone().normalize(), WALL_Z);
 
@@ -151,9 +157,18 @@ export const createExperience = (
     document.documentElement.style.cursor = next ? "pointer" : "";
     requestRender();
   };
+  const { activeSection, openSection } = useSection();
   const onPointerMove = (event: PointerEvent) => {
     aim.x = (event.clientX / window.innerWidth) * 2 - 1;
     aim.y = (event.clientY / window.innerHeight) * 2 - 1;
+    // Con una sección abierta (o un objeto volviendo a su sitio) la habitación no se resalta
+    if (activeSection.value || [...flights.values()].some((flight) => flight.isAway())) {
+      if (hovered) {
+        setHovered(null);
+        setHoverTarget(null);
+      }
+      return;
+    }
     const overInterface = (event.target as Element | null)?.closest?.("button, a, header, .panel");
     const hadLabel = Boolean(hovered);
     setHovered(overInterface ? null : pick(aim.x, -aim.y));
@@ -162,6 +177,49 @@ export const createExperience = (
     else if (hadLabel) setHoverTarget(null);
   };
 
+  // Clic en un objeto de la habitación: abre su sección (su id es el de la sección)
+  // En táctil no hay "pasar por encima": se mira qué objeto hay bajo el dedo al tocar
+  const onClick = (event: MouseEvent) => {
+    if (activeSection.value) return;
+    let target = hovered;
+    if (!target && !hasMouse && !(event.target as Element | null)?.closest?.("button, a, header, .panel")) {
+      target = pick((event.clientX / window.innerWidth) * 2 - 1, 1 - (event.clientY / window.innerHeight) * 2);
+    }
+    if (target) openSection(target.id as SectionId);
+  };
+
+  // Objetos que vuelan a su ventana al abrir la sección: el tablón (Skills). Sin vuelo con
+  // "reducir movimiento": la ventana aparece directamente
+  const { flyable, arrived } = useSectionWindow();
+  const flights = new Map<string, ReturnType<typeof createFlyToWindow>>();
+  if (!reducedMotion) {
+    for (const { id, object } of (room.userData.clickables ?? []) as Clickable[]) {
+      if (id !== "skills") continue;
+      flights.set(
+        id,
+        createFlyToWindow(object, camera, id, animate, (done) => (arrived.value = done ? (id as SectionId) : null)),
+      );
+    }
+  }
+  // Después de que la interfaz pinte la ventana, para poder medir su rectángulo
+  const stopSectionWatch = watch(
+    activeSection,
+    (id, previous) => {
+      if (previous) flights.get(previous)?.close();
+      if (!id) return;
+      setHovered(null);
+      setHoverTarget(null);
+      const flight = flights.get(id);
+      if (!flight) return;
+      // El objeto puede estar a mitad del salto de resaltado: vuela desde su sitio
+      const object = ((room.userData.clickables ?? []) as Clickable[]).find((clickable) => clickable.id === id)!.object;
+      gsap.killTweensOf(object.position);
+      if (object.userData.baseY !== undefined) object.position.y = object.userData.baseY;
+      flight.open();
+    },
+    { flush: "post" },
+  );
+
   const resize = () => {
     const { innerWidth: width, innerHeight: height } = window;
     renderer.setSize(width, height, false);
@@ -169,6 +227,7 @@ export const createExperience = (
     target = fitCamera(camera, framePoints, CAMERA_DIRECTION, getStage(width, height), width, height);
     baseOffset.setFromVector3(camera.position.clone().sub(target));
     if (parallaxEnabled) applyParallax();
+    for (const flight of flights.values()) flight.place();
     requestRender();
   };
 
@@ -179,11 +238,16 @@ export const createExperience = (
   modelsSettled().then(() => {
     requestRender();
     onReady();
+    // Si la sección ya estaba abierta (enlace con #skills), el tablón se coloca directamente en su ventana
+    const open = activeSection.value;
+    if (open) flights.get(open)?.open(true);
+    flyable.value = [...flights.keys()] as SectionId[];
   });
 
   // El contorno funciona con ratón aunque la cámara no se mueva ("reducir movimiento")
   const hasMouse = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
   if (hasMouse) window.addEventListener("pointermove", onPointerMove);
+  window.addEventListener("click", onClick);
   if (parallaxEnabled) {
     animate((delta) => {
       const ease = Math.min(1, delta * PARALLAX.ease);
@@ -205,6 +269,10 @@ export const createExperience = (
       room.userData.dispose?.();
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("click", onClick);
+      stopSectionWatch();
+      flyable.value = [];
+      arrived.value = null;
       document.documentElement.style.cursor = "";
       outline.dispose();
       scene.traverse((object) => {

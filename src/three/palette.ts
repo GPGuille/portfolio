@@ -42,7 +42,8 @@ export const palette = {
   postItPapers: ["#f6d58e", "#a9c4ec", "#b6d99a", "#efe6d6"],
   // Chinchetas solo rojas y azules, en diagonal, todas clavadas igual
   postItPins: ["#c8453a", "#2f5fae", "#2f5fae", "#c8453a"],
-  postItInk: "#2d2a24",
+  // Grafito: lo escrito en los post-its va a lápiz (en el tablón 3D y en la ventana de Skills)
+  postItInk: "#3a3a3d",
   // Contorno de lo clicable al pasar el ratón: el azul de la etiqueta, algo más claro para que resalte
   outline: "#3f63b0",
   lightSky: "#fff6ea",

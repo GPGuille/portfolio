@@ -7,7 +7,7 @@ type Messages = {
   sections: Record<SectionId, string>;
   hero: { jobTitle: string };
   nav: { label: string; open: string; close: string; switchLanguage: string };
-  panel: { close: string; comingSoon: string };
+  panel: { close: string; back: string; comingSoon: string };
   avatar: { label: string };
   screen: { hint: string };
   hover: { avatar: string; email: string; linkedin: string; github: string };
@@ -34,7 +34,7 @@ export const messages: Record<Locale, Messages> = {
       close: "Cerrar menú",
       switchLanguage: "Switch to English",
     },
-    panel: { close: "Cerrar", comingSoon: "Próximamente" },
+    panel: { close: "Cerrar", back: "Volver", comingSoon: "Próximamente" },
     avatar: { label: "Guillermo saludando. Abrir Sobre mí" },
     screen: { hint: "Haz clic para verlos" },
     hover: { avatar: "Sobre mí", email: "Email", linkedin: "LinkedIn", github: "GitHub" },
@@ -58,7 +58,7 @@ export const messages: Record<Locale, Messages> = {
       close: "Close menu",
       switchLanguage: "Cambiar a español",
     },
-    panel: { close: "Close", comingSoon: "Coming soon" },
+    panel: { close: "Close", back: "Back", comingSoon: "Coming soon" },
     avatar: { label: "Guillermo waving. Open About me" },
     screen: { hint: "Click to see them" },
     hover: { avatar: "About me", email: "Email", linkedin: "LinkedIn", github: "GitHub" },

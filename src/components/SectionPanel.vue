@@ -15,7 +15,7 @@ const onKeydown = (event: KeyboardEvent) => {
 
 // Al abrir una sección, el foco va al botón de cerrar (útil con teclado)
 watch(activeSection, async (id) => {
-  if (!id) return;
+  if (!id || id === "skills") return;
   await nextTick();
   closeRef.value?.focus();
 });
@@ -26,7 +26,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
 
 <template>
   <Transition name="panel">
-    <section v-if="activeSection" :key="activeSection" class="panel" aria-labelledby="panel-title">
+    <section v-if="activeSection && activeSection !== 'skills'" :key="activeSection" class="panel" aria-labelledby="panel-title">
       <div class="panel-header">
         <h2 id="panel-title" class="panel-title">{{ t.sections[activeSection] }}</h2>
         <button ref="closeRef" type="button" class="panel-close" :aria-label="t.panel.close" @click="closeSection">

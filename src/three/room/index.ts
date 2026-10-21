@@ -13,6 +13,7 @@ import { createMonitor, MONITOR_HEIGHT } from "./createMonitor";
 import { createCatBed, CAT_BED_SIZE } from "./createCatBed";
 import { createRug, RUG_SIZE } from "./createRug";
 import { createFloorShadowCatcher, createWallShadowCatcher } from "./createShadowCatcher";
+import { applyCorkTexture } from "./applyCorkTexture";
 import { createWallProp } from "./createWallProp";
 import { palette } from "../palette";
 
@@ -120,7 +121,16 @@ export const createRoom = (hooks: SceneHooks) => {
   const hooksLoad = () => hooks.requestRender();
 
   // El tablón se ajusta al mismo alto que la estantería (apenas cambia su proporción)
-  const corkboard = createWallProp(corkboardUrl, { width: CORKBOARD_WIDTH, height: SIDE_HEIGHT, depth: 0.05 }, () => onWallWoodLoad(), true);
+  const corkboard = createWallProp(
+    corkboardUrl,
+    { width: CORKBOARD_WIDTH, height: SIDE_HEIGHT, depth: 0.05 },
+    () => {
+      // El mismo corcho que la ventana de Skills, para que al abrirla no cambie
+      applyCorkTexture(corkboard);
+      onWallWoodLoad();
+    },
+    true,
+  );
   corkboard.position.set(shelfX - SHELF_WIDTH / 2 - WALL_SPACING - CORKBOARD_WIDTH / 2, wallTopLine - SIDE_HEIGHT, WALL_Z);
   // Post-its con las skills, sobre el corcho (su cara está a 3,3 cm de la pared)
   corkboard.add(createPostIts(0.033, hooksLoad));
