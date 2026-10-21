@@ -57,10 +57,9 @@ onBeforeUnmount(() => {
 
   &-canvas {
     display: block;
-    // Cuadrado: el avatar a la derecha y los bloques de contacto a su izquierda, con aire para
-    // que la mano no se salga al saludar
-    // Nunca más alto que el hueco bajo el nombre: si no, la página tendría scroll
-    width: min(clamp(310px, 28vw, 460px), calc((100svh - 22rem) * 0.9));
+    // El avatar a la derecha y los bloques de contacto a su izquierda. Ocupa todo el alto libre
+    // bajo el nombre (así es lo más grande posible sin que la página tenga scroll), con tope
+    height: clamp(320px, calc(100svh - 19rem), 680px);
     aspect-ratio: 9 / 10;
     opacity: 0;
     transition: opacity 0.8s var(--ease-smooth);

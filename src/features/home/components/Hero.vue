@@ -40,9 +40,10 @@ const { t } = useI18n();
     width: fit-content;
   }
 
-  // Debajo del nombre, dejando sitio a la etiqueta inclinada
+  // Abajo del todo, con los pies a la altura del margen inferior: "a pie de suelo" sea cual sea el
+  // alto de la ventana (pantalla completa o no, Mac o Windows con la barra de tareas)
   &-avatar {
-    margin-top: calc(var(--font-size-title) * 0.95);
+    margin-top: auto;
     margin-left: calc(var(--font-size-title) * 0.2);
   }
 

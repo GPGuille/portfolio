@@ -75,8 +75,9 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
   // La cámara se desplaza a la izquierda para dejar sitio a los bloques de contacto, y se aleja lo
   // justo para que el avatar sentado encima de ellos no se corte por la izquierda
   const camera = new PerspectiveCamera(22, 0.9, 0.1, 20);
-  camera.position.set(-0.22, 0.62, 3.35);
-  camera.lookAt(-0.22, 0.5, 0);
+  // Los pies quedan casi en el borde inferior del lienzo, para que el avatar parezca "a pie de suelo"
+  camera.position.set(-0.22, 0.72, 3.35);
+  camera.lookAt(-0.22, 0.61, 0);
 
   // Bloques de contacto (correo, LinkedIn, GitHub) apilados a la izquierda del avatar, generados con
   // IA. Más adelante serán clicables. Con su propia sombra de contacto

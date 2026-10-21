@@ -82,9 +82,8 @@ export const createRoom = (hooks: SceneHooks) => {
   // Alfombra bajo toda la mesa (su borde de atrás a 6 cm de la pared) que termina pasada la silla;
   // con una columna de más a cada lado de la mesa para que quepa la cama del gato a la derecha
   const rug = createRug();
-  // Desplazada a la derecha (dos cuadros): por la izquierda no se mete bajo la columna del nombre
-  // y el avatar, y por la derecha se sale de la pantalla
-  rug.position.set(0.56, 0, WALL_Z + 0.06 + RUG_SIZE.depth / 2);
+  // Centrada en la mesa: por la derecha termina justo pasada la cama del gato
+  rug.position.set(0, 0, WALL_Z + 0.06 + RUG_SIZE.depth / 2);
   room.add(rug);
 
   // Cama con el gato dormido a la derecha de la cajonera, sobre la alfombra, con su frente
