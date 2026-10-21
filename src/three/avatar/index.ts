@@ -158,8 +158,10 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
     breathe(delta);
     render();
   };
+  // Sin foco (otra ventana o aplicación delante) el avatar también se para: ahorra batería
+  let focused = true;
   const play = () => {
-    if (reducedMotion || frame || document.hidden || !mixer) return;
+    if (reducedMotion || frame || document.hidden || !focused || !mixer) return;
     clock.getDelta();
     frame = requestAnimationFrame(loop);
   };
@@ -168,6 +170,14 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
     frame = 0;
   };
   const onVisibility = () => (document.hidden ? pause() : play());
+  const onBlur = () => {
+    focused = false;
+    pause();
+  };
+  const onFocus = () => {
+    focused = true;
+    play();
+  };
 
   // Cada gesto sustituye a la pose de reposo con un fundido cruzado, y al acabar vuelve a ella
   // (si se mezclaran a la vez, three.js las promediaría y el gesto quedaría a medias)
@@ -186,7 +196,7 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
     window.clearTimeout(gestureTimer);
     const wait = GESTURE_PAUSE.min + Math.random() * (GESTURE_PAUSE.max - GESTURE_PAUSE.min);
     gestureTimer = window.setTimeout(() => {
-      if (document.hidden || current) return scheduleGesture();
+      if (document.hidden || !focused || current) return scheduleGesture();
       const options = GESTURES.filter((name) => name !== lastGesture);
       lastGesture = options[Math.floor(Math.random() * options.length)]!;
       if (lastGesture === "sit") sitOnBlocks();
@@ -380,6 +390,8 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
   });
   observer.observe(canvas);
   document.addEventListener("visibilitychange", onVisibility);
+  window.addEventListener("blur", onBlur);
+  window.addEventListener("focus", onFocus);
   resize();
 
   return {
@@ -396,6 +408,8 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
       pause();
       observer.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
       scene.traverse((object) => {
         if (!(object instanceof Mesh)) return;
         object.geometry.dispose();

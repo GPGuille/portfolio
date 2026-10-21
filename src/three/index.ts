@@ -91,6 +91,9 @@ export const createExperience = (
   // Mientras anima se limita a 30 fotogramas por segundo: suficiente para un movimiento suave
   // y la mitad de trabajo para la tarjeta gráfica (el navegador ya para el bucle con la pestaña oculta)
   const FRAME_TIME = 1000 / 30;
+  // Sin foco (otra ventana o aplicación delante) las animaciones se paran y solo se dibuja lo que
+  // se pida; al volver el foco siguen donde estaban. Ahorra batería con la web abierta de fondo
+  let focused = true;
   let frame = 0;
   const animations = new Set<(delta: number) => boolean>();
   let lastTime = 0;
@@ -101,9 +104,9 @@ export const createExperience = (
       return;
     }
     const delta = lastTime ? Math.min((time - lastTime) / 1000, 0.1) : 0;
-    for (const animation of animations) if (!animation(delta)) animations.delete(animation);
+    if (focused) for (const animation of animations) if (!animation(delta)) animations.delete(animation);
     outline.render();
-    if (animations.size) {
+    if (animations.size && focused) {
       lastTime = time;
       frame = requestAnimationFrame(draw);
     } else {
@@ -118,6 +121,16 @@ export const createExperience = (
     animations.add(animation);
     requestRender();
   };
+  const onBlur = () => {
+    focused = false;
+  };
+  const onFocus = () => {
+    focused = true;
+    lastTime = 0;
+    requestRender();
+  };
+  window.addEventListener("blur", onBlur);
+  window.addEventListener("focus", onFocus);
 
   // Cámara que sigue al ratón: gira muy poco alrededor del punto al que mira, con inercia.
   // Solo con ratón (no en táctil) y sin "reducir movimiento"
@@ -331,6 +344,8 @@ export const createExperience = (
       animations.clear();
       room.userData.dispose?.();
       window.removeEventListener("resize", resize);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("click", onClick);
       stopSectionWatch();

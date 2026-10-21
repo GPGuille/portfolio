@@ -29,9 +29,7 @@ Guillermo **no quiere que aparezca nada de David** en su web. La licencia de Dav
 | Vite | Desarrollo y compilación (`base: "./"`) |
 | SCSS | Estilos; `mixins.scss` se inyecta en todos los `<style lang="scss">` |
 | Three.js | Escena 3D en un canvas fijo detrás del contenido |
-| vite-plugin-glsl | Importar shaders `.glsl` |
 | GSAP | Animaciones de la interfaz (etiqueta) |
-| Howler | Sonidos (aún sin usar) |
 | simple-icons (CC0) | Logos de las tecnologías en la ventana de Skills (se importan uno a uno; el resto no entra en el bundle) |
 | @fontsource | Fuentes locales: Urbanist (400/700/900) |
 | ProFont | Fuente de la etiqueta (negrita), en `public/fonts/profont/` como woff2 con su licencia MIT; descargada de tobiasjung.name/profont y precargada desde `index.html` |
@@ -59,7 +57,6 @@ src/
     palette.ts               colores de la habitación (sacados de fotos de su oficina real)
     room/                    la habitación, una pieza por archivo (cajoneras, tablero…)
     textures/                texturas generadas en código (madera, corcho, fieltro…), sin imágenes externas
-    shaders/                 shaders GLSL
 ```
 
 ## Decisiones de diseño ya tomadas
@@ -118,6 +115,7 @@ src/
 ## Rendimiento (no romper)
 
 - La escena 3D se dibuja solo cuando algo cambia (`requestRender` en `src/three/index.ts`), no en bucle. Cualquier animación 3D futura debe pedir sus fotogramas mientras dure.
+- Sin foco (otra ventana o aplicación delante, evento `blur`) la escena y el avatar paran sus animaciones; con el foco siguen donde estaban. Con la pestaña oculta el navegador ya para el bucle.
 - three.js se carga con `import()` dinámico desde `Experience.vue`, en un archivo aparte, después del texto. Lo que la web necesite de la escena sin cargar three.js va en `src/three/layout.ts`.
 - La web no tiene scroll: no hay librería de scroll suave.
 
@@ -126,3 +124,4 @@ src/
 - `npm install` instala dependencias.
 - `npm run dev` arranca en http://localhost:3000.
 - `npm run build` comprueba tipos con `vue-tsc` y compila a `dist/`. Debe pasar sin errores antes de dar algo por terminado.
+- `npm test` compila, sirve la web y pasa las pruebas de `tests/` con Playwright en el Chrome instalado (escritorio 1440×900 y móvil Pixel 7): carga sin errores, cada sección se abre y se cierra (menú, Escape, Volver, atrás del navegador, enlace `#skills`), el teclado no sale de la ventana y el idioma traduce los post-its. Deben pasar antes de subir.
