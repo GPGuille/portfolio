@@ -149,5 +149,13 @@ export const createRoom = (hooks: SceneHooks) => {
   wall.position.set(0.15, (wallTop + wallBottom) / 2, WALL_Z);
   room.add(wall);
 
+  // Objetos clicables de la habitación (contorno al pasar el ratón; más adelante abrirán su sección)
+  room.userData.clickables = [
+    { id: "projects", object: monitor },
+    { id: "skills", object: corkboard },
+    { id: "certifications", object: certificates },
+    { id: "cat", object: catBed },
+  ];
+
   return room;
 };

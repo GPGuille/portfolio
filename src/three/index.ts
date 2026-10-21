@@ -11,6 +11,8 @@ import {
   WebGLRenderer,
 } from "three";
 import { collectFramePoints, fitCamera } from "./framing";
+import { createHoverPicker, type Clickable } from "./interaction/createHoverPicker";
+import { createOutline } from "./interaction/createOutline";
 import { modelsSettled } from "./models/loadModel";
 import type { Stage } from "./layout";
 import { palette } from "./palette";
@@ -64,6 +66,7 @@ export const createExperience = (
   scene.add(sun);
 
   const camera = new PerspectiveCamera(35, 1, 0.1, 100);
+  const outline = createOutline(renderer, scene, camera);
   const framePoints = collectFramePoints(room, sun.position.clone().normalize(), WALL_Z);
 
   // La escena está quieta: solo se dibuja cuando algo cambia (tamaño de ventana,
@@ -85,7 +88,7 @@ export const createExperience = (
     }
     const delta = lastTime ? Math.min((time - lastTime) / 1000, 0.1) : 0;
     for (const animation of animations) if (!animation(delta)) animations.delete(animation);
-    renderer.render(scene, camera);
+    outline.render();
     if (animations.size) {
       lastTime = time;
       frame = requestAnimationFrame(draw);
@@ -116,14 +119,28 @@ export const createExperience = (
     camera.position.setFromSpherical(offset).add(target);
     camera.lookAt(target);
   };
+  // Contorno del objeto clicable bajo el ratón (salvo si está encima de la interfaz: menú,
+  // panel, avatar…)
+  const pick = createHoverPicker(camera, () => (room.userData.clickables ?? []) as Clickable[]);
+  let hovered: Clickable | null = null;
+  const setHovered = (next: Clickable | null) => {
+    if (next?.id === hovered?.id) return;
+    hovered = next;
+    outline.setSelection(next?.object ?? null);
+    document.documentElement.style.cursor = next ? "pointer" : "";
+    requestRender();
+  };
   const onPointerMove = (event: PointerEvent) => {
     aim.x = (event.clientX / window.innerWidth) * 2 - 1;
     aim.y = (event.clientY / window.innerHeight) * 2 - 1;
+    const overInterface = (event.target as Element | null)?.closest?.("button, a, header, .panel");
+    setHovered(overInterface ? null : pick(aim.x, -aim.y));
   };
 
   const resize = () => {
     const { innerWidth: width, innerHeight: height } = window;
     renderer.setSize(width, height, false);
+    outline.setSize(width, height);
     target = fitCamera(camera, framePoints, CAMERA_DIRECTION, getStage(width, height), width, height);
     baseOffset.setFromVector3(camera.position.clone().sub(target));
     if (parallaxEnabled) applyParallax();
@@ -139,8 +156,10 @@ export const createExperience = (
     onReady();
   });
 
+  // El contorno funciona con ratón aunque la cámara no se mueva ("reducir movimiento")
+  const hasMouse = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  if (hasMouse) window.addEventListener("pointermove", onPointerMove);
   if (parallaxEnabled) {
-    window.addEventListener("pointermove", onPointerMove);
     animate((delta) => {
       const ease = Math.min(1, delta * PARALLAX.ease);
       tilt.x += (aim.x - tilt.x) * ease;
@@ -161,6 +180,8 @@ export const createExperience = (
       room.userData.dispose?.();
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onPointerMove);
+      document.documentElement.style.cursor = "";
+      outline.dispose();
       scene.traverse((object) => {
         if (!(object instanceof Mesh)) return;
         object.geometry.dispose();

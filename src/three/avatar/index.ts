@@ -23,6 +23,8 @@ import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.j
 import avatarUrl from "../../assets/models/avatar.glb?url";
 import contactBlocksUrl from "../../assets/models/contact-blocks.glb?url";
 import gsap from "gsap";
+import { createHoverPicker, type Clickable } from "../interaction/createHoverPicker";
+import { createOutline } from "../interaction/createOutline";
 import { palette } from "../palette";
 
 // Animaciones del modelo (Hyper3D/Rodin). El reposo es el primer fotograma de HappyIdle, quieto,
@@ -89,6 +91,7 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
     const { clientWidth: width, clientHeight: height } = canvas;
     if (!width || !height) return;
     renderer.setSize(width, height, false);
+    outline.setSize(width, height);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
   };
@@ -101,7 +104,28 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
   let frame = 0;
   let disposed = false;
 
-  const render = () => renderer.render(scene, camera);
+  const render = () => outline.render();
+
+  // Clicables del lienzo: cada cubo de contacto por separado y el avatar. Contorno al pasar el ratón
+  const outline = createOutline(renderer, scene, camera);
+  const clickables: Clickable[] = [];
+  const pick = createHoverPicker(camera, () => clickables);
+  let hovered: Clickable | null = null;
+  const setHovered = (next: Clickable | null) => {
+    if (next?.id === hovered?.id) return;
+    hovered = next;
+    outline.setSelection(next?.object ?? null);
+    canvas.style.cursor = next ? "pointer" : "";
+    if (next?.id === "avatar") greet();
+    if (!frame) render();
+  };
+  const onPointerMove = (event: PointerEvent) => {
+    const rect = canvas.getBoundingClientRect();
+    setHovered(pick(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1));
+  };
+  const onPointerLeave = () => setHovered(null);
+  canvas.addEventListener("pointermove", onPointerMove);
+  canvas.addEventListener("pointerleave", onPointerLeave);
 
   const loop = () => {
     frame = requestAnimationFrame(loop);
@@ -245,6 +269,21 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
     blocksHolder.position.x = BLOCKS.x;
     blocksHolder.rotation.y = BLOCKS.rotation;
     scene.add(blocksHolder);
+    // Cada cubo es un grupo propio (por el nombre de sus piezas) para poder señalarlo por separado
+    const cubes: Record<string, Group> = { email: new Group(), linkedin: new Group(), github: new Group() };
+    // Los grupos se añaden antes de mover las piezas: attach conserva la posición en el mundo,
+    // y si el grupo aún no estuviera en su sitio las piezas se transformarían dos veces
+    for (const cube of Object.values(cubes)) blocks.add(cube);
+    blocksHolder.updateMatrixWorld(true);
+    const meshes: Mesh[] = [];
+    blocks.traverse((object) => {
+      if (object instanceof Mesh) meshes.push(object);
+    });
+    for (const mesh of meshes) {
+      const id = mesh.name.startsWith("GitHub") ? "github" : mesh.name.startsWith("LinkedIn") ? "linkedin" : "email";
+      cubes[id]!.attach(mesh);
+    }
+    for (const [id, cube] of Object.entries(cubes)) clickables.push({ id, object: cube });
     if (!frame) render();
   });
 
@@ -265,6 +304,7 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
     // El avatar va dentro de un soporte para poder moverlo entero (al sentarse en los bloques)
     holder = new Group();
     holder.add(model);
+    clickables.push({ id: "avatar", object: model });
     scene.add(holder);
 
     mixer = new AnimationMixer(model);
@@ -320,7 +360,12 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
 
   return {
     greet,
+    // Qué hay bajo el ratón: el avatar, un cubo de contacto o nada
+    getHovered: () => hovered?.id ?? null,
     dispose: () => {
+      canvas.removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointerleave", onPointerLeave);
+      outline.dispose();
       disposed = true;
       window.clearTimeout(gestureTimer);
       sitTimeline?.kill();

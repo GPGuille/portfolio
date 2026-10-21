@@ -22,6 +22,13 @@ onMounted(async () => {
   avatar = createAvatarExperience(canvasRef.value, () => (isReady.value = true));
 });
 
+// Con ratón solo cuenta el clic sobre el avatar (los cubos tendrán su propia acción); con teclado
+// (sin ratón encima) el botón abre "Sobre mí"
+const onClick = (event: MouseEvent) => {
+  const hovered = avatar?.getHovered();
+  if (event.detail === 0 || hovered === "avatar") openSection("about");
+};
+
 onBeforeUnmount(() => {
   isUnmounted = true;
   avatar?.dispose();
@@ -34,8 +41,7 @@ onBeforeUnmount(() => {
     class="avatar"
     data-stage="side"
     :aria-label="t.avatar.label"
-    @click="openSection('about')"
-    @mouseenter="avatar?.greet()"
+    @click="onClick"
     @focus="avatar?.greet()"
   >
     <canvas ref="canvasRef" class="avatar-canvas" :class="{ 'is-ready': isReady }" aria-hidden="true"></canvas>
@@ -53,7 +59,8 @@ onBeforeUnmount(() => {
   padding: 0;
   border: 0;
   background: none;
-  cursor: pointer;
+  // El cursor de mano solo aparece sobre lo clicable (lo pone el lienzo)
+  cursor: default;
 
   // Mismas condiciones que la escena al lado del nombre
   @media (min-width: 840px) and (orientation: landscape) {

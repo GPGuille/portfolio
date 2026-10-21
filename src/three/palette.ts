@@ -44,6 +44,8 @@ export const palette = {
   // Chinchetas solo rojas y azules, en diagonal, todas clavadas igual
   postItPins: ["#c8453a", "#2f5fae", "#2f5fae", "#c8453a"],
   postItInk: "#2d2a24",
+  // Contorno de lo clicable al pasar el ratón: el mismo tono oscuro que el texto
+  outline: "#2d2a24",
   lightSky: "#fff6ea",
   lightGround: "#b89a7c",
   lightSun: "#fff0d9",
