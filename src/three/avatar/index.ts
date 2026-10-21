@@ -2,7 +2,6 @@ import {
   AnimationMixer,
   Group,
   Box3,
-  CircleGeometry,
   Clock,
   DirectionalLight,
   HemisphereLight,
@@ -12,6 +11,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   PerspectiveCamera,
+  PlaneGeometry,
   Scene,
   SRGBColorSpace,
   Vector3,
@@ -27,6 +27,7 @@ import { setHoverTarget } from "../../composables/useHoverLabel";
 import { createHoverPicker, type Clickable } from "../interaction/createHoverPicker";
 import { createOutline } from "../interaction/createOutline";
 import { palette } from "../palette";
+import { createSoftShadowTexture } from "../textures/createSoftShadowTexture";
 
 // Animaciones del modelo (Hyper3D/Rodin). El reposo es el primer fotograma de HappyIdle, quieto,
 // con una respiración suave añadida en código; Salute es el saludo (al entrar y al pasar el ratón)
@@ -39,10 +40,11 @@ const SIT = { clip: "HumanSitting", seatHeight: 0.255, seatDepth: 0.12, duration
 const GESTURE_PAUSE = { min: 15, max: 25 };
 // Fundido lento entre el reposo y los gestos, para que la vuelta sea suave
 const FADE = 0.9;
-// Bloques de contacto: alto de la pila (el avatar mide 1), posición y giro hacia la cámara
-const BLOCKS = { height: 0.48, x: -0.47, rotation: 0.35 };
+// Bloques de contacto: alto de la pila (el avatar mide 1), ancho de un cubo, posición y giro
+const BLOCKS = { height: 0.48, footprint: 0.16, x: -0.47, rotation: 0.35 };
 // Cubo resaltado: cuánto sale hacia delante (en unidades del modelo de los cubos) y cuánto gira
-const CUBE_POP = { forward: 0.06, turn: -0.25 };
+// También sube un poco, para que al girar no se meta en el cubo de abajo
+const CUBE_POP = { forward: 0.06, lift: 0.008, turn: -0.25 };
 // Respiración: ciclo de unos 4 s; el pecho se abre y los hombros suben un poco
 const BREATH = { speed: 1.6, chest: 0.025, shoulders: 0.03 };
 
@@ -66,12 +68,13 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
   scene.add(fill);
 
   // Sombra de contacto bajo los pies: una mancha suave, sin el coste de las sombras reales
+  // Sombras de contacto: manchas difuminadas (textura dibujada en código), sin el coste de las
+  // sombras reales. Redonda bajo los pies y cuadrada bajo la pila de cubos
   const contactShadow = new Mesh(
-    new CircleGeometry(0.17, 40),
-    new MeshBasicMaterial({ color: "#000000", transparent: true, opacity: 0.1, depthWrite: false }),
+    new PlaneGeometry(0.42, 0.24),
+    new MeshBasicMaterial({ map: createSoftShadowTexture("round"), transparent: true, opacity: 0.22, depthWrite: false }),
   );
   contactShadow.rotation.x = -Math.PI / 2;
-  contactShadow.scale.y = 0.55;
   contactShadow.position.y = 0.001;
   scene.add(contactShadow);
 
@@ -86,9 +89,13 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
 
   // Bloques de contacto (correo, LinkedIn, GitHub) apilados a la izquierda del avatar, generados con
   // IA. Más adelante serán clicables. Con su propia sombra de contacto
-  const blocksShadow = contactShadow.clone();
-  blocksShadow.scale.set(0.6, 0.35, 1);
-  blocksShadow.position.x = BLOCKS.x;
+  const blocksShadow = new Mesh(
+    new PlaneGeometry(BLOCKS.footprint * 1.6, BLOCKS.footprint * 1.6),
+    new MeshBasicMaterial({ map: createSoftShadowTexture("square"), transparent: true, opacity: 0.28, depthWrite: false }),
+  );
+  blocksShadow.rotation.set(-Math.PI / 2, 0, BLOCKS.rotation);
+  // Un poco desplazada hacia donde cae la luz (viene de arriba a la izquierda y de frente)
+  blocksShadow.position.set(BLOCKS.x + 0.015, 0.001, -0.01);
   scene.add(blocksShadow);
   const resize = () => {
     const { clientWidth: width, clientHeight: height } = canvas;
@@ -119,7 +126,7 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
     if (reducedMotion) return;
     object.userData.basePosition ??= object.position.clone();
     const base = object.userData.basePosition as Vector3;
-    gsap.to(object.position, { z: base.z + (out ? CUBE_POP.forward : 0), duration: 0.35, ease: out ? "back.out(2.5)" : "power2.out", overwrite: true, onUpdate: () => { if (!frame) render(); } });
+    gsap.to(object.position, { y: base.y + (out ? CUBE_POP.lift : 0), z: base.z + (out ? CUBE_POP.forward : 0), duration: 0.35, ease: out ? "back.out(2.5)" : "power2.out", overwrite: true, onUpdate: () => { if (!frame) render(); } });
     gsap.to(object.rotation, { y: out ? CUBE_POP.turn : 0, duration: 0.35, ease: out ? "back.out(2.5)" : "power2.out", overwrite: true });
   };
   const setHovered = (next: Clickable | null) => {
