@@ -10,6 +10,8 @@ export const palette = {
   keycapAlpha: "#efe6d4",
   keycapModifier: "#d8bfa8",
   keycapAccent: "#c98a64",
+  // Marco de los títulos de la estantería: negro satinado
+  certificateFrame: "#2a2826",
   // Pantalla del monitor: fondo oscuro, barra de ventana y texto claro
   screenBackground: "#232631",
   screenBar: "#2e3240",

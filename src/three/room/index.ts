@@ -14,6 +14,7 @@ import { createCatBed, CAT_BED_SIZE } from "./createCatBed";
 import { createRug, RUG_SIZE } from "./createRug";
 import { createFloorShadowCatcher, createWallShadowCatcher } from "./createShadowCatcher";
 import { createWallProp } from "./createWallProp";
+import { palette } from "../palette";
 
 // La pared (invisible) queda a 5 mm del borde trasero del escritorio
 export const WALL_Z = -DESK_TOP_SIZE.depth / 2 - 0.005;
@@ -30,7 +31,9 @@ const SIDE_WIDTH = 0.85;
 const SIDE_HEIGHT = SIDE_WIDTH * (0.96 / 1.2);
 const SHELF_WIDTH = 0.7;
 // Materiales de madera de la estantería que se sustituyen por la madera del marco del tablón
-const SHELF_WOOD = new Set(["Satin cabinet wood", "Dark satin frame wood"]);
+const SHELF_WOOD = new Set(["Satin cabinet wood"]);
+// Marco de los títulos: negro satinado, para que destaquen sobre la madera clara
+const CERTIFICATE_FRAME = "Dark satin frame wood";
 const WALL_SPACING = 0.16;
 // La cámara mira desde la derecha: lo que está en la pared se ve desplazado a la izquierda respecto
 // al monitor (que está más adelante). Se compensa para que la balda se vea centrada sobre la pantalla
@@ -132,7 +135,7 @@ export const createRoom = (hooks: SceneHooks) => {
   room.add(wallShelf);
 
   // La estantería usa la misma madera (material y textura) que el marco del tablón: así forman
-  // pareja y el nogal se queda solo en la mesa. Los marcos de los títulos siguen en nogal.
+  // pareja y el nogal se queda solo en la mesa. Los marcos de los títulos van en negro.
   // Se aplica cuando han cargado los dos modelos
   const matchWallWood = () => {
     let frameWood: Material | undefined;
@@ -141,7 +144,14 @@ export const createRoom = (hooks: SceneHooks) => {
     });
     if (!frameWood) return;
     certificates.traverse((object) => {
-      if (object instanceof Mesh && SHELF_WOOD.has(object.material.name)) object.material = frameWood!;
+      if (!(object instanceof Mesh)) return;
+      if (SHELF_WOOD.has(object.material.name)) object.material = frameWood!;
+      if (object.material.name === CERTIFICATE_FRAME) {
+        object.material.map = null;
+        object.material.color.set(palette.certificateFrame);
+        object.material.roughness = 0.45;
+        object.material.needsUpdate = true;
+      }
     });
   };
   const onWallWoodLoad = () => {
