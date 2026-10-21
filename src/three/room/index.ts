@@ -1,4 +1,5 @@
-import { Group } from "three";
+import { Group, Mesh } from "three";
+import type { Material } from "three";
 import certificateShelfUrl from "../../assets/models/certificate-shelf.glb?url";
 import corkboardUrl from "../../assets/models/corkboard.glb?url";
 import wallShelfUrl from "../../assets/models/wall-shelf.glb?url";
@@ -13,7 +14,6 @@ import { createCatBed, CAT_BED_SIZE } from "./createCatBed";
 import { createRug, RUG_SIZE } from "./createRug";
 import { createFloorShadowCatcher, createWallShadowCatcher } from "./createShadowCatcher";
 import { createWallProp } from "./createWallProp";
-import { palette } from "../palette";
 
 // La pared (invisible) queda a 5 mm del borde trasero del escritorio
 export const WALL_Z = -DESK_TOP_SIZE.depth / 2 - 0.005;
@@ -29,6 +29,8 @@ const CORKBOARD_WIDTH = 1;
 const SIDE_WIDTH = 0.85;
 const SIDE_HEIGHT = SIDE_WIDTH * (0.96 / 1.2);
 const SHELF_WIDTH = 0.7;
+// Materiales de madera de la estantería que se sustituyen por la madera del marco del tablón
+const SHELF_WOOD = new Set(["Satin cabinet wood", "Dark satin frame wood"]);
 const WALL_SPACING = 0.16;
 // La cámara mira desde la derecha: lo que está en la pared se ve desplazado a la izquierda respecto
 // al monitor (que está más adelante). Se compensa para que la balda se vea centrada sobre la pantalla
@@ -115,7 +117,7 @@ export const createRoom = (hooks: SceneHooks) => {
   const hooksLoad = () => hooks.requestRender();
 
   // El tablón se ajusta al mismo alto que la estantería (apenas cambia su proporción)
-  const corkboard = createWallProp(corkboardUrl, { width: CORKBOARD_WIDTH, height: SIDE_HEIGHT, depth: 0.05 }, hooksLoad, true);
+  const corkboard = createWallProp(corkboardUrl, { width: CORKBOARD_WIDTH, height: SIDE_HEIGHT, depth: 0.05 }, () => onWallWoodLoad(), true);
   corkboard.position.set(shelfX - SHELF_WIDTH / 2 - WALL_SPACING - CORKBOARD_WIDTH / 2, wallTopLine - SIDE_HEIGHT, WALL_Z);
   // Post-its con las skills, sobre el corcho (su cara está a 3,3 cm de la pared)
   corkboard.add(createPostIts(0.033, hooksLoad));
@@ -129,15 +131,24 @@ export const createRoom = (hooks: SceneHooks) => {
   wallShelf.add(createShelfDuck(SHELF_WIDTH, hooksLoad));
   room.add(wallShelf);
 
-  // La estantería pasa de nogal oscuro a roble claro, como el marco del tablón: así forman pareja
-  // y el nogal se queda solo en la mesa. Los marcos de los títulos siguen en nogal
-  const certificates = createWallProp(
-    certificateShelfUrl,
-    { width: SIDE_WIDTH, height: SIDE_HEIGHT, depth: 0.42 },
-    hooksLoad,
-    false,
-    { "Satin cabinet wood": palette.wallOak, "Dark satin frame wood": palette.wallOakDark },
-  );
+  // La estantería usa la misma madera (material y textura) que el marco del tablón: así forman
+  // pareja y el nogal se queda solo en la mesa. Los marcos de los títulos siguen en nogal.
+  // Se aplica cuando han cargado los dos modelos
+  const matchWallWood = () => {
+    let frameWood: Material | undefined;
+    corkboard.traverse((object) => {
+      if (object instanceof Mesh && object.material.name === "Soft finished wood frame") frameWood = object.material;
+    });
+    if (!frameWood) return;
+    certificates.traverse((object) => {
+      if (object instanceof Mesh && SHELF_WOOD.has(object.material.name)) object.material = frameWood!;
+    });
+  };
+  const onWallWoodLoad = () => {
+    matchWallWood();
+    hooksLoad();
+  };
+  const certificates = createWallProp(certificateShelfUrl, { width: SIDE_WIDTH, height: SIDE_HEIGHT, depth: 0.42 }, onWallWoodLoad);
   certificates.position.set(shelfX + SHELF_WIDTH / 2 + WALL_SPACING + SIDE_WIDTH / 2, wallTopLine - SIDE_HEIGHT, WALL_Z);
   room.add(certificates);
 
