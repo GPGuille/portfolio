@@ -32,7 +32,7 @@ export const createExperience = (
   getStage: (width: number, height: number) => Stage,
   onReady: () => void,
 ) => {
-  const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
+  const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, stencil: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFSoftShadowMap;

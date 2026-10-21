@@ -154,7 +154,6 @@ export const createRoom = (hooks: SceneHooks) => {
     { id: "projects", object: monitor },
     { id: "skills", object: corkboard },
     { id: "certifications", object: certificates },
-    { id: "cat", object: catBed },
   ];
 
   return room;
