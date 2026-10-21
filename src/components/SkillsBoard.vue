@@ -15,13 +15,29 @@ const { flyable, arrived, notes } = useSectionWindow();
 
 const isOpen = computed(() => activeSection.value === "skills");
 // Con vuelo, la ventana espera a que el tablón 3D llegue a su sitio y aparece encima de él
-const isVisible = computed(() => isOpen.value && (!flyable.value.includes("skills") || arrived.value === "skills"));
+const hasArrived = computed(() => !flyable.value.includes("skills") || arrived.value === "skills");
 
 // Con la escena (tablón 3D en la ventana, solo en pantallas anchas y apaisadas) la ventana es
 // transparente: marco y corcho son los del propio tablón 3D. Sus post-its HTML aparecen encima de
 // los 3D, con su misma medida, sitio, giro y aspecto (icono grande y título); después crecen en su
 // sitio y aparece la lista (`isExpanded`). Al cerrar se recogen antes de que el tablón vuelva
 const hasScene = computed(() => flyable.value.includes("skills") && notes.value.length === skillGroups.length);
+
+// La primera vez tras cargar, las medidas de los post-its 3D llegan justo con el tablón: la ventana
+// pasa entonces a la forma con escena sin animar ese cambio (los post-its saltarían desde la
+// cuadrícula) y solo aparece cuando ya está colocada, dos fotogramas después
+const isSettled = ref(false);
+watch(
+  hasScene,
+  async (ready) => {
+    isSettled.value = false;
+    if (!ready) return;
+    await nextTick();
+    requestAnimationFrame(() => requestAnimationFrame(() => (isSettled.value = true)));
+  },
+  { immediate: true },
+);
+const isVisible = computed(() => isOpen.value && hasArrived.value && (!hasScene.value || isSettled.value));
 
 // La ventana sigue montada mientras se cierra (un elemento que sale con <Transition> deja de
 // actualizarse y sus post-its no podrían recogerse): se desmonta al terminar su fundido
@@ -149,7 +165,7 @@ const drawIcon = (canvas: Element | null, icon: SkillIcon) => {
     <section
       ref="boardRef"
       class="board"
-      :class="{ 'has-scene': hasScene, 'is-expanded': isExpanded || !hasScene }"
+      :class="{ 'has-scene': hasScene, 'is-settled': isSettled, 'is-expanded': isExpanded || !hasScene }"
       data-fly-target="skills"
       tabindex="-1"
       role="dialog"
@@ -542,6 +558,12 @@ const drawIcon = (canvas: Element | null, icon: SkillIcon) => {
   }
 
   .board.has-scene {
+    // Recién pasada a la forma con escena: sin transiciones hasta que esté colocada
+    &:not(.is-settled) .note,
+    &:not(.is-settled) .note * {
+      transition: none !important;
+    }
+
     overflow: visible;
     background: none;
     box-shadow: none;
