@@ -87,3 +87,16 @@ export const drawSkillIcon = (context: CanvasRenderingContext2D, icon: SkillIcon
     drawWrench(context);
   }
 };
+
+// Tamaño del título del post-it (fuente ProFont negrita en un lienzo de 512 px): 92 px, o menos si
+// no cabe en 470 px ("HERRAMIENTAS"). La ventana de Skills usa la misma medida para imitar al 3D
+export const TITLE_FONT_SIZE = 92;
+export const fitTitleSize = (context: CanvasRenderingContext2D, text: string) => {
+  let size = TITLE_FONT_SIZE;
+  context.font = `700 ${size}px "ProFont", monospace`;
+  while (context.measureText(text).width > 470 && size > 40) {
+    size -= 2;
+    context.font = `700 ${size}px "ProFont", monospace`;
+  }
+  return size;
+};

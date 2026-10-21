@@ -9,6 +9,10 @@ import { createPostItTextTexture } from "../textures/createPostItTextTexture";
 // colores distintos y algo girados. El modelo (IA) se carga una vez y se clona. Medidas relativas al
 // tablón: `width` × `height` y el corcho a `surfaceZ` de la pared. Origen: centro de la base del tablón
 const NOTE_WIDTH = 0.2;
+// Chincheta: algo más pequeña que en el modelo y arriba a la izquierda del papel, para dejar sitio
+// a la lista cuando el post-it se abre en la ventana de Skills (que la mide y la copia)
+const PIN_SCALE = 0.8;
+const PIN_POSITION = { x: 0.22, lift: 0.025 };
 const LAYOUT = [
   { x: -0.2, y: 0.34, rotation: 0.05 },
   { x: 0.19, y: 0.35, rotation: -0.06 },
@@ -47,6 +51,24 @@ export const createPostIts = (surfaceZ: number, onLoad: () => void) => {
         note.updateMatrixWorld(true);
         const paperBox = new Box3().setFromObject(paper);
         const paperSize = paperBox.getSize(new Vector3());
+
+        // Cabeza y aguja de la chincheta van juntas en un grupo, que se encoge sobre su centro y se
+        // lleva a su nuevo sitio (a PIN_POSITION.x del ancho desde la izquierda, algo más arriba)
+        const pinParts: Mesh[] = [];
+        note.traverse((object) => {
+          if (object instanceof Mesh && object.material.name !== "Matte yellow paper") pinParts.push(object);
+        });
+        const pin = new Group();
+        note.add(pin);
+        for (const part of pinParts) pin.attach(part);
+        const pinCenter = new Box3().setFromObject(pin).getCenter(new Vector3());
+        for (const part of pinParts) part.position.sub(pinCenter);
+        pin.position.set(
+          paperBox.min.x + paperSize.x * PIN_POSITION.x,
+          pinCenter.y + paperSize.x * PIN_POSITION.lift,
+          pinCenter.z,
+        );
+        pin.scale.setScalar(PIN_SCALE);
         const side = paperSize.x * 0.86;
         const text = new Mesh(
           new PlaneGeometry(side, side),

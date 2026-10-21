@@ -8,4 +8,11 @@ import type { SectionId } from "./useSection";
 const flyable = ref<SectionId[]>([]);
 const arrived = ref<SectionId | null>(null);
 
-export const useSectionWindow = () => ({ flyable, arrived });
+// Post-its del tablón 3D medidos en el propio tablón (marco incluido), en fracciones de su ancho y
+// alto: centro, tamaño del papel, giro (radianes, antihorario) y dónde va la chincheta (respecto al
+// centro del papel, en fracciones del papel). La ventana coloca los suyos justo encima para que el
+// cambio de 3D a HTML no se note
+export type NoteRect = { x: number; y: number; width: number; height: number; rotation: number; pinX: number; pinY: number };
+const notes = ref<NoteRect[]>([]);
+
+export const useSectionWindow = () => ({ flyable, arrived, notes });

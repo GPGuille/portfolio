@@ -1,7 +1,7 @@
 import { CanvasTexture, SRGBColorSpace } from "three";
 import type { SkillGroup } from "../../content/skills";
 import type { Locale } from "../../i18n/messages";
-import { drawSkillIcon } from "./drawSkillIcon";
+import { drawSkillIcon, fitTitleSize } from "./drawSkillIcon";
 
 const PIXEL_FONT = '"ProFont", monospace';
 
@@ -30,12 +30,7 @@ export const createPostItTextTexture = ({ title, icon }: SkillGroup, ink: string
     context.textBaseline = "middle";
     const locale: Locale = document.documentElement.lang === "en" ? "en" : "es";
     const text = title[locale].toUpperCase();
-    let size = 92;
-    context.font = `700 ${size}px ${PIXEL_FONT}`;
-    while (context.measureText(text).width > 470 && size > 40) {
-      size -= 2;
-      context.font = `700 ${size}px ${PIXEL_FONT}`;
-    }
+    fitTitleSize(context, text);
     context.fillText(text, 256, 420);
     texture.needsUpdate = true;
   };

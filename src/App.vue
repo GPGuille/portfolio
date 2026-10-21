@@ -24,12 +24,15 @@ const { activeSection } = useSection();
 </template>
 
 <style scoped lang="scss">
+// Al cerrar, la página vuelve cuando el tablón empieza a volver a la pared (después de que los
+// post-its se recojan), no antes: si no, el nombre y el avatar se le pondrían encima
 .page {
-  transition: opacity 0.4s var(--ease-smooth);
+  transition: opacity 0.4s var(--ease-smooth) 0.5s;
 
   &.is-covered {
     opacity: 0;
     pointer-events: none;
+    transition: opacity 0.4s var(--ease-smooth);
   }
 
   @media (prefers-reduced-motion: reduce) {

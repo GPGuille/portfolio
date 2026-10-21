@@ -133,7 +133,10 @@ export const createRoom = (hooks: SceneHooks) => {
   );
   corkboard.position.set(shelfX - SHELF_WIDTH / 2 - WALL_SPACING - CORKBOARD_WIDTH / 2, wallTopLine - SIDE_HEIGHT, WALL_Z);
   // Post-its con las skills, sobre el corcho (su cara está a 3,3 cm de la pared)
-  corkboard.add(createPostIts(0.033, hooksLoad));
+  const postIts = createPostIts(0.033, hooksLoad);
+  corkboard.add(postIts);
+  // La ventana de Skills mide los post-its para colocar los suyos encima y los oculta mientras se ve
+  corkboard.userData.postIts = postIts;
   room.add(corkboard);
 
   const shelfHeight = SHELF_WIDTH * 0.42;

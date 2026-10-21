@@ -1,5 +1,6 @@
 import type { Object3D } from "three";
 import {
+  Box3,
   DirectionalLight,
   HemisphereLight,
   Material,
@@ -8,6 +9,7 @@ import {
   PerspectiveCamera,
   Scene,
   Spherical,
+  Vector2,
   Vector3,
   WebGLRenderer,
 } from "three";
@@ -190,22 +192,82 @@ export const createExperience = (
 
   // Objetos que vuelan a su ventana al abrir la sección: el tablón (Skills). Sin vuelo con
   // "reducir movimiento": la ventana aparece directamente
-  const { flyable, arrived } = useSectionWindow();
+  const { flyable, arrived, notes } = useSectionWindow();
   const flights = new Map<string, ReturnType<typeof createFlyToWindow>>();
+  // Al llegar, los post-its de la ventana aparecen encima de los 3D (fundido de NOTES_SWAP s) y
+  // entonces se ocultan los 3D; al cerrar se muestran ya (debajo de los HTML) y el tablón vuelve
+  // enseguida: la ventana viaja con él mientras sus post-its se recogen y se desvanece
+  const NOTES_SWAP = 0.25;
+  const CLOSE_DELAY = 0;
+  let notesTimer = 0;
   if (!reducedMotion) {
     for (const { id, object } of (room.userData.clickables ?? []) as Clickable[]) {
       if (id !== "skills") continue;
+      const postIts = object.userData.postIts as Object3D | undefined;
       flights.set(
         id,
-        createFlyToWindow(object, camera, id, animate, (done) => (arrived.value = done ? (id as SectionId) : null)),
+        createFlyToWindow(object, camera, id, animate, (done) => {
+          if (done) measureNotes(object, id);
+          arrived.value = done ? (id as SectionId) : null;
+          window.clearTimeout(notesTimer);
+          if (!postIts) return;
+          if (!done) postIts.visible = true;
+          else notesTimer = window.setTimeout(() => (postIts.visible = false), NOTES_SWAP * 1000);
+          requestRender();
+        }),
       );
     }
   }
+
+  // Medida de los post-its del tablón ya en la ventana: se proyectan las esquinas de cada papel a la
+  // pantalla (con la perspectiva real) y se expresan en fracciones del rectángulo de la ventana:
+  // centro, ancho, alto, giro y dónde está la chincheta
+  const measureNotes = (board: Object3D, id: string) => {
+    const postIts = board.userData.postIts as Object3D | undefined;
+    const rect = document.querySelector(`[data-fly-target="${id}"]`)?.getBoundingClientRect();
+    if (!postIts?.children.length || !rect) return;
+    camera.updateMatrixWorld(true);
+    board.updateMatrixWorld(true);
+    const toScreen = (point: Vector3) => {
+      point.project(camera);
+      return new Vector2(((point.x + 1) / 2) * window.innerWidth, ((1 - point.y) / 2) * window.innerHeight);
+    };
+    notes.value = postIts.children.map((holder) => {
+      let paper: Mesh | undefined;
+      let pin: Mesh | undefined;
+      holder.traverse((child) => {
+        if (!(child instanceof Mesh)) return;
+        if (child.material.name === "Matte yellow paper") paper = child;
+        if (child.material.name === "Glossy red plastic") pin = child;
+      });
+      if (!paper) return { x: 0.5, y: 0.5, width: 0, height: 0, rotation: 0, pinX: 0, pinY: 0 };
+      paper.geometry.computeBoundingBox();
+      const { min, max } = paper.geometry.boundingBox!;
+      const corner = (x: number, y: number) => toScreen(paper!.localToWorld(new Vector3(x, y, max.z)));
+      const bottomLeft = corner(min.x, min.y);
+      const bottomRight = corner(max.x, min.y);
+      const topLeft = corner(min.x, max.y);
+      const across = bottomRight.clone().sub(bottomLeft);
+      const up = topLeft.clone().sub(bottomLeft);
+      const center = bottomLeft.clone().add(across.clone().multiplyScalar(0.5)).add(up.clone().multiplyScalar(0.5));
+      const pinOffset = pin ? toScreen(new Box3().setFromObject(pin).getCenter(new Vector3())).sub(center) : new Vector2();
+      return {
+        x: (center.x - rect.left) / rect.width,
+        y: (center.y - rect.top) / rect.height,
+        width: across.length() / rect.width,
+        height: up.length() / rect.height,
+        rotation: Math.atan2(-across.y, across.x),
+        pinX: pinOffset.dot(across) / across.lengthSq(),
+        pinY: pinOffset.dot(up) / up.lengthSq(),
+      };
+    });
+  };
+
   // Después de que la interfaz pinte la ventana, para poder medir su rectángulo
   const stopSectionWatch = watch(
     activeSection,
     (id, previous) => {
-      if (previous) flights.get(previous)?.close();
+      if (previous) flights.get(previous)?.close(CLOSE_DELAY);
       if (!id) return;
       setHovered(null);
       setHoverTarget(null);
@@ -240,7 +302,8 @@ export const createExperience = (
     onReady();
     // Si la sección ya estaba abierta (enlace con #skills), el tablón se coloca directamente en su ventana
     const open = activeSection.value;
-    if (open) flights.get(open)?.open(true);
+    const openObject = ((room.userData.clickables ?? []) as Clickable[]).find((clickable) => clickable.id === open)?.object;
+    if (open && openObject && flights.has(open)) flights.get(open)!.open(true);
     flyable.value = [...flights.keys()] as SectionId[];
   });
 
