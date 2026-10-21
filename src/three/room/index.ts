@@ -13,6 +13,7 @@ import { createCatBed, CAT_BED_SIZE } from "./createCatBed";
 import { createRug, RUG_SIZE } from "./createRug";
 import { createFloorShadowCatcher, createWallShadowCatcher } from "./createShadowCatcher";
 import { createWallProp } from "./createWallProp";
+import { palette } from "../palette";
 
 // La pared (invisible) queda a 5 mm del borde trasero del escritorio
 export const WALL_Z = -DESK_TOP_SIZE.depth / 2 - 0.005;
@@ -81,7 +82,9 @@ export const createRoom = (hooks: SceneHooks) => {
   // Alfombra bajo toda la mesa (su borde de atrás a 6 cm de la pared) que termina pasada la silla;
   // con una columna de más a cada lado de la mesa para que quepa la cama del gato a la derecha
   const rug = createRug();
-  rug.position.set(0, 0, WALL_Z + 0.06 + RUG_SIZE.depth / 2);
+  // Desplazada a la derecha (dos cuadros): por la izquierda no se mete bajo la columna del nombre
+  // y el avatar, y por la derecha se sale de la pantalla
+  rug.position.set(0.56, 0, WALL_Z + 0.06 + RUG_SIZE.depth / 2);
   room.add(rug);
 
   // Cama con el gato dormido a la derecha de la cajonera, sobre la alfombra, con su frente
@@ -127,7 +130,15 @@ export const createRoom = (hooks: SceneHooks) => {
   wallShelf.add(createShelfDuck(SHELF_WIDTH, hooksLoad));
   room.add(wallShelf);
 
-  const certificates = createWallProp(certificateShelfUrl, { width: SIDE_WIDTH, height: SIDE_HEIGHT, depth: 0.42 }, hooksLoad);
+  // La estantería pasa de nogal oscuro a roble claro, como el marco del tablón: así forman pareja
+  // y el nogal se queda solo en la mesa. Los marcos de los títulos siguen en nogal
+  const certificates = createWallProp(
+    certificateShelfUrl,
+    { width: SIDE_WIDTH, height: SIDE_HEIGHT, depth: 0.42 },
+    hooksLoad,
+    false,
+    { "Satin cabinet wood": palette.wallOak, "Dark satin frame wood": palette.wallOakDark },
+  );
   certificates.position.set(shelfX + SHELF_WIDTH / 2 + WALL_SPACING + SIDE_WIDTH / 2, wallTopLine - SIDE_HEIGHT, WALL_Z);
   room.add(certificates);
 

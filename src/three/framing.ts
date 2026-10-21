@@ -50,8 +50,8 @@ const projectToScreen = (points: Vector3[], camera: PerspectiveCamera, width: nu
   return { left, right, top, bottom, behindCamera };
 };
 
-// Coloca la cámara en la dirección dada a la distancia justa para que todos los puntos
-// quepan en el escenario, y desplaza la imagen para centrarlos en él
+// Coloca la cámara en la dirección dada a la distancia justa para que todos los puntos quepan en el
+// escenario, y desplaza la imagen para colocarlos en él. Devuelve el punto al que mira la cámara
 export const fitCamera = (
   camera: PerspectiveCamera,
   points: Vector3[],
@@ -87,8 +87,11 @@ export const fitCamera = (
   }
 
   const bounds = placeAt(far);
-  const offsetX = (bounds.left + bounds.right) / 2 - (stage.left + stage.right) / 2;
+  // En horizontal se alinea a la derecha del escenario (la habitación se va a la derecha y deja la
+  // columna del nombre y el avatar despejada); en vertical, centrada
+  const offsetX = bounds.right - stage.right;
   const offsetY = (bounds.top + bounds.bottom) / 2 - (stage.top + stage.bottom) / 2;
   camera.setViewOffset(width, height, offsetX, offsetY, width, height);
   camera.updateProjectionMatrix();
+  return target;
 };

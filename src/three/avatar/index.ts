@@ -44,7 +44,8 @@ const BREATH = { speed: 1.6, chest: 0.025, shoulders: 0.03 };
 // Avatar 3D de Guillermo (modelo con esqueleto y animaciones) en su propio canvas, en la columna
 // del nombre. En reposo se anima en bucle mientras la pestaña está visible; saluda al entrar y
 // cuando se le pide (greet). Con "reducir movimiento" queda quieto en su pose de reposo
-export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
+// onReady avisa cuando el modelo está cargado, para mostrarlo con un fundido
+export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () => void) => {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -300,6 +301,7 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement) => {
     mixer.update(0);
     captureBreathBones(model);
     render();
+    onReady();
     play();
     if (!reducedMotion) {
       // Saluda al entrar, cuando ya se ha visto la página un momento

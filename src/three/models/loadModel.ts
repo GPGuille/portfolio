@@ -12,8 +12,12 @@ export type LoadedModel = { model: Object3D; animations: AnimationClip[] };
 // Carga un modelo, lo escala para que su medida más larga en el eje dado sea `size`, lo centra
 // en horizontal y lo apoya en el suelo (y = 0). Las mallas hacen y reciben sombras; las que
 // tienen esqueleto no se recortan por la cámara (al animarse se salen de su caja de reposo)
-export const loadModel = (url: string, size: number, axis: "x" | "y" | "z" = "y") =>
-  new Promise<LoadedModel>((resolve, reject) => {
+// Cargas en curso: la escena espera a que terminen para aparecer con un fundido
+const pending = new Set<Promise<unknown>>();
+export const modelsSettled = () => Promise.allSettled([...pending]);
+
+export const loadModel = (url: string, size: number, axis: "x" | "y" | "z" = "y") => {
+  const promise = new Promise<LoadedModel>((resolve, reject) => {
     loader.load(
       url,
       (gltf) => {
@@ -37,3 +41,7 @@ export const loadModel = (url: string, size: number, axis: "x" | "y" | "z" = "y"
       reject,
     );
   });
+  pending.add(promise);
+  promise.finally(() => pending.delete(promise)).catch(() => {});
+  return promise;
+};

@@ -2,6 +2,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "../composables/useI18n";
 import { useSection } from "../composables/useSection";
+import { contactLinks } from "../content/contact";
 
 const { t } = useI18n();
 const { activeSection, closeSection } = useSection();
@@ -32,7 +33,15 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
           <span aria-hidden="true">×</span>
         </button>
       </div>
-      <p class="panel-body">{{ t.panel.comingSoon }}</p>
+      <ul v-if="activeSection === 'contact' && contactLinks.length" class="panel-links">
+        <li v-for="link in contactLinks" :key="link.id">
+          <a class="panel-link" :href="link.href" :target="link.id === 'email' ? undefined : '_blank'" rel="noopener">
+            <span class="panel-link-label">{{ link.label }}</span>
+            <span class="panel-link-text">{{ link.text }}</span>
+          </a>
+        </li>
+      </ul>
+      <p v-else class="panel-body">{{ t.panel.comingSoon }}</p>
     </section>
   </Transition>
 </template>
@@ -75,6 +84,39 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
     font-size: 28px;
     line-height: 1;
     cursor: pointer;
+  }
+
+  &-links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &-link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    color: inherit;
+    text-decoration: none;
+
+    &:hover .panel-link-text {
+      text-decoration: underline;
+    }
+  }
+
+  &-link-label {
+    font-family: var(--font-pixel);
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--color-banner);
+  }
+
+  &-link-text {
+    font-size: var(--font-size-nav);
+    font-weight: 600;
   }
 
   &-body {

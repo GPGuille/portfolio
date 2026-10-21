@@ -7,11 +7,9 @@ const MAIN_FONT = '"Urbanist", system-ui, sans-serif';
 
 // Pantalla del monitor: una ventana con su barra, la palabra "Proyectos" en la fuente pixelada de
 // la web y tres carpetas, como invitando a abrirlos (la pantalla será el acceso a Proyectos).
-// El idioma es el de la página al crearla. Las fuentes se cargan aparte: se redibuja al llegar
-export const createProjectsScreenTexture = (aspect: number) => {
-  const locale: Locale = document.documentElement.lang === "en" ? "en" : "es";
-  const title = messages[locale].sections.projects;
-  const hint = messages[locale].screen.hint;
+// Sigue el idioma de la página: al cambiarlo se redibuja y avisa con onChange (para volver a dibujar
+// la escena). Las fuentes se cargan aparte: también se redibuja al llegar
+export const createProjectsScreenTexture = (aspect: number, onChange: () => void) => {
 
   const canvas = document.createElement("canvas");
   canvas.width = 1024;
@@ -22,6 +20,9 @@ export const createProjectsScreenTexture = (aspect: number) => {
   texture.anisotropy = 8;
 
   const draw = () => {
+    const locale: Locale = document.documentElement.lang === "en" ? "en" : "es";
+    const title = messages[locale].sections.projects;
+    const hint = messages[locale].screen.hint;
     const { width, height } = canvas;
     context.fillStyle = palette.screenBackground;
     context.fillRect(0, 0, width, height);
@@ -64,6 +65,10 @@ export const createProjectsScreenTexture = (aspect: number) => {
   };
 
   draw();
+  new MutationObserver(() => {
+    draw();
+    onChange();
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
   Promise.all([document.fonts.load(`700 40px ${PIXEL_FONT}`), document.fonts.load(`500 40px ${MAIN_FONT}`)])
     .then(draw)
     .catch(() => {});

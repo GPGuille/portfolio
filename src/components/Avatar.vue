@@ -10,6 +10,8 @@ const { openSection } = useSection();
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let avatar: ReturnType<typeof createAvatarExperience> | null = null;
 let isUnmounted = false;
+// Aparece con un fundido cuando el modelo ha cargado
+const isReady = ref(false);
 
 // El avatar solo se muestra junto al nombre (pantallas anchas y apaisadas): en el resto
 // está oculto por CSS y no se carga
@@ -17,7 +19,7 @@ onMounted(async () => {
   if (!canvasRef.value?.offsetParent) return;
   const { createAvatarExperience } = await import("../three/avatar");
   if (isUnmounted || !canvasRef.value) return;
-  avatar = createAvatarExperience(canvasRef.value);
+  avatar = createAvatarExperience(canvasRef.value, () => (isReady.value = true));
 });
 
 onBeforeUnmount(() => {
@@ -36,7 +38,7 @@ onBeforeUnmount(() => {
     @mouseenter="avatar?.greet()"
     @focus="avatar?.greet()"
   >
-    <canvas ref="canvasRef" class="avatar-canvas" aria-hidden="true"></canvas>
+    <canvas ref="canvasRef" class="avatar-canvas" :class="{ 'is-ready': isReady }" aria-hidden="true"></canvas>
   </button>
 </template>
 
@@ -60,6 +62,16 @@ onBeforeUnmount(() => {
     // Nunca más alto que el hueco bajo el nombre: si no, la página tendría scroll
     width: min(clamp(310px, 28vw, 460px), calc((100svh - 22rem) * 0.9));
     aspect-ratio: 9 / 10;
+    opacity: 0;
+    transition: opacity 0.8s var(--ease-smooth);
+
+    &.is-ready {
+      opacity: 1;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
   }
 }
 </style>

@@ -40,7 +40,7 @@ export const createMonitor = (onLoad: () => void) => {
         const center = (screenBox as Box3).getCenter(new Vector3());
         const screen = new Mesh(
           new PlaneGeometry(size.x, size.y),
-          new MeshBasicMaterial({ map: createProjectsScreenTexture(size.x / size.y), toneMapped: false }),
+          new MeshBasicMaterial({ map: createProjectsScreenTexture(size.x / size.y, onLoad), toneMapped: false }),
         );
         screen.position.set(center.x, center.y, (screenBox as Box3).max.z + 0.002);
         screen.name = "projects-screen";

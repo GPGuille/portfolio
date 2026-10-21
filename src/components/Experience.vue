@@ -6,6 +6,8 @@ import { SIDE_BY_SIDE_MIN_WIDTH, type Stage } from "../three/layout";
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let experience: ReturnType<typeof createExperience> | null = null;
 let isUnmounted = false;
+// La escena aparece con un fundido cuando han cargado sus modelos (sin piezas apareciendo de golpe)
+const isReady = ref(false);
 
 const bottoms = (rects: DOMRect[]) => Math.max(0, ...rects.map((rect) => rect.bottom));
 const rights = (rects: DOMRect[]) => Math.max(0, ...rects.map((rect) => rect.right));
@@ -35,7 +37,7 @@ const getStage = (width: number, height: number): Stage => {
 onMounted(async () => {
   const { createExperience } = await import("../three");
   if (isUnmounted || !canvasRef.value) return;
-  experience = createExperience(canvasRef.value, getStage);
+  experience = createExperience(canvasRef.value, getStage, () => (isReady.value = true));
 });
 
 onBeforeUnmount(() => {
@@ -45,7 +47,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <canvas ref="canvasRef" class="experience" aria-hidden="true"></canvas>
+  <canvas ref="canvasRef" class="experience" :class="{ 'is-ready': isReady }" aria-hidden="true"></canvas>
 </template>
 
 <style scoped lang="scss">
@@ -56,5 +58,15 @@ onBeforeUnmount(() => {
   height: 100%;
   z-index: var(--z-experience);
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s var(--ease-smooth);
+
+  &.is-ready {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 </style>

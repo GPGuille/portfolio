@@ -1,4 +1,4 @@
-import { Box3, BoxGeometry, Group, Mesh, MeshBasicMaterial } from "three";
+import { Box3, BoxGeometry, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial } from "three";
 import { loadModel } from "../models/loadModel";
 
 // Objeto colgado en la pared hecho con IA (tablón, estantería, balda). Se escala a `width` de ancho
@@ -12,6 +12,8 @@ export const createWallProp = (
   size: { width: number; height: number; depth: number },
   onLoad: () => void,
   stretchToHeight = false,
+  // Colores propios por nombre de material del modelo (sustituyen su textura)
+  recolor: Record<string, string> = {},
 ) => {
   const group = new Group();
   group.userData.isWallMounted = true;
@@ -23,6 +25,14 @@ export const createWallProp = (
   loadModel(url, size.width, "x")
     .then(({ model }) => {
       // loadModel lo deja centrado: se mueve hacia delante para que la trasera toque la pared
+      model.traverse((object) => {
+        if (!(object instanceof Mesh) || !(object.material instanceof MeshStandardMaterial)) return;
+        const color = recolor[object.material.name];
+        if (!color) return;
+        object.material.map = null;
+        object.material.color.set(color);
+        object.material.needsUpdate = true;
+      });
       let box = new Box3().setFromObject(model);
       if (stretchToHeight) {
         model.scale.y *= size.height / (box.max.y - box.min.y);
