@@ -26,7 +26,7 @@ import { createRoom, WALL_Z } from "./room";
 const HOP_HEIGHT = 0.03;
 
 // Giro máximo de la cámara al mover el ratón (radianes) y rapidez con la que lo sigue
-const PARALLAX = { yaw: 0.045, pitch: 0.025, ease: 3 };
+const PARALLAX = { yaw: 0.02, pitch: 0.011, ease: 2.5 };
 
 const CAMERA_DIRECTION = new Vector3(2.4, 1.9, 4.2).normalize();
 
