@@ -44,6 +44,8 @@ const FADE = 0.9;
 const BLOCKS = { height: 0.48, footprint: 0.16, x: -0.47, rotation: 0.35 };
 // Cubo resaltado: cuánto sale hacia delante (en unidades del modelo de los cubos) y cuánto gira
 // También sube un poco, para que al girar no se meta en el cubo de abajo
+// Al salir, el cubo sube un poco (se separa del de debajo y no se funde con él) y los cubos de encima
+// suben con él, como al sacar un bloque de una pila: así al girar no corta al de arriba
 const CUBE_POP = { forward: 0.06, lift: 0.008, turn: -0.25 };
 // Respiración: ciclo de unos 4 s; el pecho se abre y los hombros suben un poco
 const BREATH = { speed: 1.6, chest: 0.025, shoulders: 0.03 };
@@ -121,18 +123,33 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
   const clickables: Clickable[] = [];
   const pick = createHoverPicker(camera, () => clickables);
   let hovered: Clickable | null = null;
-  // El cubo resaltado sale hacia delante y gira un poco, como un cajón que se abre
-  const popCube = (object: Object3D, out: boolean) => {
+  // El cubo resaltado sale hacia delante, sube y gira un poco, como un cajón que se abre; los que
+  // tiene encima suben lo mismo (sin girar), apoyados en él. Cada cubo guarda su sitio en la pila
+  const stack: Object3D[] = [];
+  const updateStack = (popped: Object3D | null) => {
     if (reducedMotion) return;
-    object.userData.basePosition ??= object.position.clone();
-    const base = object.userData.basePosition as Vector3;
-    gsap.to(object.position, { y: base.y + (out ? CUBE_POP.lift : 0), z: base.z + (out ? CUBE_POP.forward : 0), duration: 0.35, ease: out ? "back.out(2.5)" : "power2.out", overwrite: true, onUpdate: () => { if (!frame) render(); } });
-    gsap.to(object.rotation, { y: out ? CUBE_POP.turn : 0, duration: 0.35, ease: out ? "back.out(2.5)" : "power2.out", overwrite: true });
+    const poppedY = popped ? (popped.userData.basePosition as Vector3).y : Infinity;
+    for (const cube of stack) {
+      const base = cube.userData.basePosition as Vector3;
+      const isPopped = cube === popped;
+      const lifted = base.y >= poppedY;
+      const ease = isPopped || lifted ? "back.out(2.5)" : "power2.out";
+      gsap.to(cube.position, {
+        y: base.y + (lifted ? CUBE_POP.lift : 0),
+        z: base.z + (isPopped ? CUBE_POP.forward : 0),
+        duration: 0.35,
+        ease,
+        overwrite: true,
+        onUpdate: () => {
+          if (!frame) render();
+        },
+      });
+      gsap.to(cube.rotation, { y: isPopped ? CUBE_POP.turn : 0, duration: 0.35, ease, overwrite: true });
+    }
   };
   const setHovered = (next: Clickable | null) => {
     if (next?.id === hovered?.id) return;
-    if (hovered && hovered.id !== "avatar") popCube(hovered.object, false);
-    if (next && next.id !== "avatar") popCube(next.object, true);
+    updateStack(next && next.id !== "avatar" ? next.object : null);
     hovered = next;
     outline.setSelection(next?.object ?? null);
     canvas.style.cursor = next ? "pointer" : "";
@@ -316,6 +333,15 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
     for (const mesh of meshes) {
       const id = mesh.name.startsWith("GitHub") ? "github" : mesh.name.startsWith("LinkedIn") ? "linkedin" : "email";
       cubes[id]!.attach(mesh);
+    }
+    // El origen de cada cubo pasa a su centro, para que gire y se encoja sobre sí mismo
+    blocks.updateMatrixWorld(true);
+    for (const cube of Object.values(cubes)) {
+      const center = blocks.worldToLocal(new Box3().setFromObject(cube).getCenter(new Vector3()));
+      for (const child of cube.children) child.position.sub(center);
+      cube.position.copy(center);
+      cube.userData.basePosition = center.clone();
+      stack.push(cube);
     }
     for (const [id, cube] of Object.entries(cubes)) clickables.push({ id, object: cube });
     if (!frame) render();
