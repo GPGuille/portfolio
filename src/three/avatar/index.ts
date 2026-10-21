@@ -23,6 +23,7 @@ import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.j
 import avatarUrl from "../../assets/models/avatar.glb?url";
 import contactBlocksUrl from "../../assets/models/contact-blocks.glb?url";
 import gsap from "gsap";
+import { setHoverTarget } from "../../composables/useHoverLabel";
 import { createHoverPicker, type Clickable } from "../interaction/createHoverPicker";
 import { createOutline } from "../interaction/createOutline";
 import { palette } from "../palette";
@@ -40,6 +41,8 @@ const GESTURE_PAUSE = { min: 15, max: 25 };
 const FADE = 0.9;
 // Bloques de contacto: alto de la pila (el avatar mide 1), posición y giro hacia la cámara
 const BLOCKS = { height: 0.48, x: -0.47, rotation: 0.35 };
+// Cubo resaltado: cuánto sale hacia delante (en unidades del modelo de los cubos) y cuánto gira
+const CUBE_POP = { forward: 0.06, turn: -0.25 };
 // Respiración: ciclo de unos 4 s; el pecho se abre y los hombros suben un poco
 const BREATH = { speed: 1.6, chest: 0.025, shoulders: 0.03 };
 
@@ -111,8 +114,18 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
   const clickables: Clickable[] = [];
   const pick = createHoverPicker(camera, () => clickables);
   let hovered: Clickable | null = null;
+  // El cubo resaltado sale hacia delante y gira un poco, como un cajón que se abre
+  const popCube = (object: Object3D, out: boolean) => {
+    if (reducedMotion) return;
+    object.userData.basePosition ??= object.position.clone();
+    const base = object.userData.basePosition as Vector3;
+    gsap.to(object.position, { z: base.z + (out ? CUBE_POP.forward : 0), duration: 0.35, ease: out ? "back.out(2.5)" : "power2.out", overwrite: true, onUpdate: () => { if (!frame) render(); } });
+    gsap.to(object.rotation, { y: out ? CUBE_POP.turn : 0, duration: 0.35, ease: out ? "back.out(2.5)" : "power2.out", overwrite: true });
+  };
   const setHovered = (next: Clickable | null) => {
     if (next?.id === hovered?.id) return;
+    if (hovered && hovered.id !== "avatar") popCube(hovered.object, false);
+    if (next && next.id !== "avatar") popCube(next.object, true);
     hovered = next;
     outline.setSelection(next?.object ?? null);
     canvas.style.cursor = next ? "pointer" : "";
@@ -122,8 +135,12 @@ export const createAvatarExperience = (canvas: HTMLCanvasElement, onReady: () =>
   const onPointerMove = (event: PointerEvent) => {
     const rect = canvas.getBoundingClientRect();
     setHovered(pick(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1));
+    setHoverTarget(hovered ? { id: hovered.id, x: event.clientX, y: event.clientY } : null);
   };
-  const onPointerLeave = () => setHovered(null);
+  const onPointerLeave = () => {
+    setHovered(null);
+    setHoverTarget(null);
+  };
   canvas.addEventListener("pointermove", onPointerMove);
   canvas.addEventListener("pointerleave", onPointerLeave);
 

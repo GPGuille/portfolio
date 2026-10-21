@@ -10,6 +10,7 @@ type Messages = {
   panel: { close: string; comingSoon: string };
   avatar: { label: string };
   screen: { hint: string };
+  hover: { avatar: string; email: string; linkedin: string; github: string };
 };
 
 // Todos los textos de la web, en los dos idiomas
@@ -36,6 +37,7 @@ export const messages: Record<Locale, Messages> = {
     panel: { close: "Cerrar", comingSoon: "Próximamente" },
     avatar: { label: "Guillermo saludando. Abrir Sobre mí" },
     screen: { hint: "Haz clic para verlos" },
+    hover: { avatar: "Sobre mí", email: "Email", linkedin: "LinkedIn", github: "GitHub" },
   },
   en: {
     meta: {
@@ -59,5 +61,6 @@ export const messages: Record<Locale, Messages> = {
     panel: { close: "Close", comingSoon: "Coming soon" },
     avatar: { label: "Guillermo waving. Open About me" },
     screen: { hint: "Click to see them" },
+    hover: { avatar: "About me", email: "Email", linkedin: "LinkedIn", github: "GitHub" },
   },
 };

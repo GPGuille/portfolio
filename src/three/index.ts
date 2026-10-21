@@ -1,3 +1,4 @@
+import type { Object3D } from "three";
 import {
   DirectionalLight,
   HemisphereLight,
@@ -10,6 +11,8 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
+import gsap from "gsap";
+import { setHoverTarget } from "../composables/useHoverLabel";
 import { collectFramePoints, fitCamera } from "./framing";
 import { createHoverPicker, type Clickable } from "./interaction/createHoverPicker";
 import { createOutline } from "./interaction/createOutline";
@@ -19,6 +22,9 @@ import { palette } from "./palette";
 import { createRoom, WALL_Z } from "./room";
 
 // Desde dónde mira la cámara (solo cuenta la dirección; la distancia la calcula el encuadre)
+// Altura del salto de un objeto al resaltarse (metros)
+const HOP_HEIGHT = 0.03;
+
 // Giro máximo de la cámara al mover el ratón (radianes) y rapidez con la que lo sigue
 const PARALLAX = { yaw: 0.045, pitch: 0.025, ease: 3 };
 
@@ -123,8 +129,23 @@ export const createExperience = (
   // panel, avatar…)
   const pick = createHoverPicker(camera, () => (room.userData.clickables ?? []) as Clickable[]);
   let hovered: Clickable | null = null;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // El objeto resaltado da un pequeño salto: sube unos centímetros con rebote y baja al dejarlo
+  const hop = (object: Object3D, up: boolean) => {
+    if (reducedMotion) return;
+    object.userData.baseY ??= object.position.y;
+    gsap.to(object.position, {
+      y: object.userData.baseY + (up ? HOP_HEIGHT : 0),
+      duration: up ? 0.45 : 0.3,
+      ease: up ? "back.out(3)" : "power2.out",
+      overwrite: true,
+      onUpdate: requestRender,
+    });
+  };
   const setHovered = (next: Clickable | null) => {
     if (next?.id === hovered?.id) return;
+    if (hovered) hop(hovered.object, false);
+    if (next) hop(next.object, true);
     hovered = next;
     outline.setSelection(next?.object ?? null);
     document.documentElement.style.cursor = next ? "pointer" : "";
@@ -134,7 +155,11 @@ export const createExperience = (
     aim.x = (event.clientX / window.innerWidth) * 2 - 1;
     aim.y = (event.clientY / window.innerHeight) * 2 - 1;
     const overInterface = (event.target as Element | null)?.closest?.("button, a, header, .panel");
+    const hadLabel = Boolean(hovered);
     setHovered(overInterface ? null : pick(aim.x, -aim.y));
+    // La etiqueta solo se toca si la puso la habitación (sobre el avatar la gestiona su lienzo)
+    if (hovered) setHoverTarget({ id: hovered.id, x: event.clientX, y: event.clientY });
+    else if (hadLabel) setHoverTarget(null);
   };
 
   const resize = () => {
