@@ -44,7 +44,12 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .avatar {
+  // Alto del lienzo: todo el alto libre bajo el nombre (lo más grande posible sin scroll), con tope
+  --avatar-height: clamp(320px, calc(100svh - 19rem), 680px);
   display: none;
+  // El borde izquierdo de los cubos está al 20,4 % del ancho del lienzo (que es 0,9 × su alto): se
+  // retrasa para que quede alineado con el borde de la G del nombre (el margen de la página)
+  margin-left: calc(var(--avatar-height) * 0.9 * -0.204);
   padding: 0;
   border: 0;
   background: none;
@@ -57,9 +62,8 @@ onBeforeUnmount(() => {
 
   &-canvas {
     display: block;
-    // El avatar a la derecha y los bloques de contacto a su izquierda. Ocupa todo el alto libre
-    // bajo el nombre (así es lo más grande posible sin que la página tenga scroll), con tope
-    height: clamp(320px, calc(100svh - 19rem), 680px);
+    // El avatar a la derecha y los bloques de contacto a su izquierda
+    height: var(--avatar-height);
     aspect-ratio: 9 / 10;
     opacity: 0;
     transition: opacity 0.8s var(--ease-smooth);

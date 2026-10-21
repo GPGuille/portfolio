@@ -44,7 +44,6 @@ const { t } = useI18n();
   // alto de la ventana (pantalla completa o no, Mac o Windows con la barra de tareas)
   &-avatar {
     margin-top: auto;
-    margin-left: calc(var(--font-size-title) * 0.2);
   }
 
   &-title {
