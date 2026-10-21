@@ -1,4 +1,4 @@
-import { Color, CustomBlending, Mesh, OneFactor, OneMinusSrcAlphaFactor, Vector2 } from "three";
+import { Color, CustomBlending, HalfFloatType, Mesh, OneFactor, OneMinusSrcAlphaFactor, Vector2, WebGLRenderTarget } from "three";
 import type { Camera, Object3D, Scene, WebGLRenderer } from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
@@ -11,14 +11,16 @@ import { palette } from "../palette";
 // El contorno de three.js suma luz (solo aclara), y sobre el fondo crema no se vería: se cambia a
 // mezcla normal para poder dibujarlo oscuro, como el trazo de una ilustración
 export const createOutline = (renderer: WebGLRenderer, scene: Scene, camera: Camera) => {
-  const composer = new EffectComposer(renderer);
+  // Con antialiasing propio (4 muestras): el del renderer no se aplica al dibujar a través del
+  // compositor, y sin esto los bordes salen en dientes de sierra
+  const composer = new EffectComposer(renderer, new WebGLRenderTarget(1, 1, { samples: 4, type: HalfFloatType }));
   composer.addPass(new RenderPass(scene, camera));
 
   const outline = new OutlinePass(new Vector2(1, 1), scene, camera);
   outline.visibleEdgeColor = new Color(palette.outline);
   outline.hiddenEdgeColor = new Color(palette.outline);
-  outline.edgeStrength = 6;
-  outline.edgeThickness = 1;
+  outline.edgeStrength = 8;
+  outline.edgeThickness = 1.4;
   outline.edgeGlow = 0;
   outline.overlayMaterial.blending = CustomBlending;
   outline.overlayMaterial.blendSrc = OneFactor;
@@ -38,8 +40,9 @@ export const createOutline = (renderer: WebGLRenderer, scene: Scene, camera: Cam
     outline.selectedObjects = meshes;
   };
 
+  // Sin nada resaltado se dibuja directamente (más barato y con el antialiasing nativo)
   return {
-    render: () => composer.render(),
+    render: () => (outline.selectedObjects.length ? composer.render() : renderer.render(scene, camera)),
     setSize: (width: number, height: number) => {
       composer.setPixelRatio(renderer.getPixelRatio());
       composer.setSize(width, height);
